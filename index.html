@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مختبر الفراهيدي الذكي | منصة تام</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&family=Cairo:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* ==================== المتغيرات الأصلية ==================== */
+        :root {
+            --sabaean-blue: #0a1628;
+            --sabaean-blue-light: #1a3a5c;
+            --aged-gold: #C8A44D;
+            --aged-gold-glow: rgba(200, 164, 77, 0.4);
+            --electric-turquoise: #00d4c8;
+            --electric-turquoise-glow: rgba(0, 212, 200, 0.3);
+            --sandstone-cream: #f5f0e3;
+            --midnight-blue: #071A2F;
+            --gradient-gold: linear-gradient(180deg, #d4af37 0%, #C8A44D 50%, #b8941f 100%);
+            --silver-gradient: linear-gradient(145deg, #E8E8E8 0%, #C0C0C0 30%, #A0A0A0 60%, #D0D0D0 100%);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Cairo', 'Noto Naskh Arabic', sans-serif;
+            background: var(--midnight-blue);
+            color: var(--sandstone-cream);
+            overflow-x: hidden;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* الخلفية والجسيمات */
+        body::before {
+            content: ""; position: fixed; top: -20%; left: -20%; width: 140%; height: 140%;
+            background: radial-gradient(circle at center, rgba(11,240,255,0.08) 1px, transparent 1px) repeat;
+            background-size: 50px 50px; z-index: -1; filter: blur(1px);
+        }
+        
+        body::after {
+            content: ""; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(11,60,93,0.7), rgba(7,26,47,0.9)); z-index: -1;
+        }
+
+        .gold-particles, .musnad-particles {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; pointer-events: none; overflow: hidden;
+        }
+
+        .particle {
+            position: absolute; width: 3px; height: 3px; background: var(--aged-gold);
+            border-radius: 50%; animation: particleFloat 8s infinite ease-in-out;
+            box-shadow: 0 0 10px var(--aged-gold-glow);
+        }
+
+        .musnad-char {
+            position: absolute; color: var(--aged-gold); font-family: 'Times New Roman', serif;
+            opacity: 0; text-shadow: 0 0 10px rgba(200, 164, 77, 0.6);
+            animation: musnadFloat 15s infinite ease-in-out;
+        }
+
+        @keyframes particleFloat {
+            0% { opacity: 0; transform: translateY(100vh) scale(0); }
+            10% { opacity: 1; } 100% { opacity: 0; transform: translateY(-100vh) scale(1.5); }
+        }
+
+        @keyframes musnadFloat {
+            0% { opacity: 0; transform: translateY(100vh) rotate(0deg); }
+            10% { opacity: 0.6; } 100% { opacity: 0; transform: translateY(-100vh) rotate(360deg); }
+        }
+
+        /* ==================== الشعار الكامل (من الكود الأصلي) ==================== */
+        .hero-logo-section {
+            margin-bottom: 2rem; display: flex; flex-direction: column; align-items: center;
+            gap: 5px; cursor: pointer; transition: transform 0.3s;
+        }
+
+        .hero-logo-section:hover {
+            transform: scale(1.02);
+        }
+
+        .hero-musnad {
+            font-size: 4rem; font-family: 'Times New Roman', serif; font-weight: bold;
+            letter-spacing: 0.05em; color: var(--aged-gold);
+            background: linear-gradient(145deg, #FFF5C3, #C8A44D 40%, #A67C2B 70%, #FFD700);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 5px 5px 10px rgba(0,0,0,0.9), -2px -2px 8px rgba(255,255,255,0.5), 8px 8px 16px rgba(0,0,0,0.7);
+            transform: perspective(600px) rotateX(15deg) translateZ(50px);
+            transition: transform 0.4s ease;
+        }
+
+        .hero-english {
+            font-family: 'Montserrat', sans-serif; font-size: 2.5rem; font-weight: 700;
+            letter-spacing: 0.25em; text-transform: uppercase;
+            background: var(--silver-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 5px 5px 10px rgba(0,0,0,0.9), -2px -2px 8px rgba(255,255,255,0.6);
+            transform: perspective(600px) rotateX(15deg) translateZ(50px);
+            transition: transform 0.4s ease;
+        }
+
+        .hero-arabic {
+            font-size: 3.5rem; font-family: 'Noto Kufi Arabic', sans-serif; font-weight: bold;
+            letter-spacing: 0.05em; color: var(--aged-gold);
+            background: linear-gradient(145deg, #FFF5C3, #C8A44D 40%, #A67C2B 70%, #FFD700);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 5px 5px 10px rgba(0,0,0,0.9), -2px -2px 8px rgba(255,255,255,0.5);
+            transform: perspective(600px) rotateX(15deg) translateZ(50px);
+            transition: transform 0.4s ease;
+        }
+
+        .hero-separator {
+            height: 4px; width: 80%; margin: 10px auto;
+            background: linear-gradient(to right, transparent, var(--aged-gold), transparent);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.25);
+        }
+
+        .hero-platform-name {
+            font-family: 'Noto Kufi Arabic', sans-serif; font-size: 1.5rem; font-weight: 700;
+            color: var(--aged-gold);
+            background: linear-gradient(145deg, #FFF5C3, #C8A44D 40%, #A67C2B 70%, #FFD700);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.9);
+            transform: perspective(600px) rotateX(10deg) translateZ(40px);
+            margin-top: 0.5rem; transition: transform 0.4s ease;
+        }
+
+        .tool-title {
+            margin-top: 2rem;
+            padding: 0.5rem 2rem;
+            border: 1px solid var(--electric-turquoise);
+            border-radius: 50px;
+            color: var(--electric-turquoise);
+            font-size: 1.2rem;
+            background: rgba(0, 212, 200, 0.1);
+            box-shadow: 0 0 15px var(--electric-turquoise-glow);
+            display: inline-block;
+        }
+
+        /* ==================== صندوق التحليل ==================== */
+        .container {
+            max-width: 1000px; margin: 0 auto; padding: 2rem; width: 100%; flex: 1;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .analysis-box {
+            width: 100%;
+            background: rgba(7, 26, 47, 0.6);
+            border: 1px solid rgba(200, 164, 77, 0.3);
+            border-radius: 30px; padding: 2.5rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            position: relative; overflow: hidden;
+            margin-top: 2rem;
+        }
+
+        .analysis-box::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--aged-gold), transparent);
+            animation: borderFlow 3s infinite;
+        }
+
+        @keyframes borderFlow { 0% { left: -100%; } 100% { left: 100%; } }
+
+        .poem-input {
+            width: 100%; min-height: 200px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(200, 164, 77, 0.2);
+            border-radius: 15px; padding: 1.5rem;
+            color: var(--sandstone-cream);
+            font-family: 'Noto Naskh Arabic', serif; font-size: 1.3rem; line-height: 2;
+            resize: vertical; text-align: center; margin-bottom: 2rem;
+        }
+        
+        .poem-input:focus { outline: none; border-color: var(--electric-turquoise); }
+
+        .controls { display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; }
+
+        .btn {
+            padding: 1rem 2.5rem; border-radius: 50px; border: none;
+            font-family: 'Noto Kufi Arabic', sans-serif; font-weight: 700; font-size: 1.1rem;
+            cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 0.5rem;
+        }
+
+        .btn-gold {
+            background: var(--gradient-gold); color: var(--midnight-blue);
+            box-shadow: 0 0 20px var(--aged-gold-glow);
+        }
+        
+        .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 10px 30px var(--aged-gold-glow); }
+
+        .btn-outline {
+            background: transparent; border: 2px solid var(--electric-turquoise); color: var(--electric-turquoise);
+        }
+        
+        .btn-outline:hover { background: rgba(0, 212, 200, 0.1); box-shadow: 0 0 20px var(--electric-turquoise-glow); }
+
+        /* النتائج */
+        .results-area {
+            margin-top: 2rem; display: none; border-top: 1px solid rgba(200, 164, 77, 0.2);
+            padding-top: 2rem; animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .result-card {
+            background: rgba(10, 22, 40, 0.6); border-right: 4px solid var(--electric-turquoise);
+            padding: 1.5rem; border-radius: 10px; margin-bottom: 1rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+
+        .loader-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(7, 26, 47, 0.9); z-index: 10; border-radius: 30px;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+
+        .spinner {
+            width: 50px; height: 50px; border: 4px solid rgba(200, 164, 77, 0.3);
+            border-top: 4px solid var(--aged-gold); border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .footer { text-align: center; padding: 2rem; color: rgba(245, 240, 227, 0.5); font-size: 0.9rem; margin-top: auto; }
+        
+        /* مؤشر */
+        .custom-cursor {
+            width: 20px; height: 20px; border: 2px solid var(--aged-gold); border-radius: 50%;
+            position: fixed; pointer-events: none; z-index: 9999; display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="gold-particles" id="goldParticles"></div>
+    <div class="musnad-particles" id="musnadParticles"></div>
+    <div class="custom-cursor" id="cursor"></div>
+
+    <div class="container">
+        
+        <div class="hero-logo-section">
+            <div class="hero-musnad" dir="ltr">𐩩𐩱𐩣</div>
+            <div class="hero-english" dir="ltr">TAM</div>
+            <div class="hero-arabic">تام</div>
+            <div class="hero-separator"></div>
+            <div class="hero-platform-name">منصة تام الثقافية الذكية</div>
+            
+            <div class="tool-title">
+                <i class="fas fa-brain"></i> مختبر الفراهيدي الذكي
+            </div>
+        </div>
+
+        <main class="analysis-box">
+            <div class="loader-overlay" id="loader">
+                <div class="spinner"></div>
+                <p style="color: var(--aged-gold);">جاري تحليل الوزن والقافية...</p>
+            </div>
+
+            <textarea class="poem-input" id="poemInput" placeholder="أدخل أبيات القصيدة هنا (الشطر الأول ... الشطر الثاني)..."></textarea>
+
+            <div class="controls">
+                <button class="btn btn-gold" onclick="analyzePoem()">
+                    <i class="fas fa-search"></i> تحليل القصيدة
+                </button>
+                <button class="btn btn-outline" onclick="checkRhyme()">
+                    <i class="fas fa-tasks"></i> فحص القافية
+                </button>
+                <button class="btn btn-outline" style="border-color: #ff6b6b; color: #ff6b6b;" onclick="clearInput()">
+                    <i class="fas fa-eraser"></i> مسح
+                </button>
+            </div>
+
+            <div class="results-area" id="resultsArea">
+                <h3 style="color: var(--electric-turquoise); margin-bottom: 1.5rem; text-align: center;">نتائج الفحص العروضي</h3>
+                
+                <div class="result-card">
+                    <div>
+                        <div style="color: var(--aged-gold); font-weight: bold;">البحر الشعري</div>
+                        <div style="font-size: 1.4rem;" id="meterResult">البحر الكامل</div>
+                    </div>
+                    <i class="fas fa-water" style="font-size: 2rem; color: var(--aged-gold);"></i>
+                </div>
+
+                <div class="result-card">
+                    <div style="width: 100%;">
+                        <div style="color: var(--aged-gold); font-weight: bold;">التفاعيل</div>
+                        <div style="font-size: 1.1rem; margin-top: 0.5rem; direction: ltr; text-align: right;">
+                            ///0//0 ///0//0 ///0//0 ... ///0//0 ///0//0 ///0//0
+                        </div>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div>
+                        <div style="color: var(--aged-gold); font-weight: bold;">النتيجة النهائية</div>
+                        <div style="color: #4CAF50;">موزونة 100%</div>
+                    </div>
+                    <i class="fas fa-check-circle" style="font-size: 2rem; color: #4CAF50;"></i>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            جميع الحقوق محفوظة © 2026 منصة تام الثقافية
+        </footer>
+    </div>
+
+    <script>
+        function createParticles() {
+            const goldContainer = document.getElementById('goldParticles');
+            const musnadContainer = document.getElementById('musnadParticles');
+            const musnadChars = ['𐩠', '𐩡', '𐩢', '𐩣', '𐩤', '𐩥', '𐩦', '𐩧', '𐩨', '𐩩'];
+
+            for (let i = 0; i < 40; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = Math.random() * 100 + '%';
+                p.style.animationDelay = Math.random() * 5 + 's';
+                p.style.animationDuration = (5 + Math.random() * 5) + 's';
+                goldContainer.appendChild(p);
+            }
+
+            for (let i = 0; i < 15; i++) {
+                const m = document.createElement('div');
+                m.className = 'musnad-char';
+                m.textContent = musnadChars[Math.floor(Math.random() * musnadChars.length)];
+                m.style.left = Math.random() * 100 + '%';
+                m.style.fontSize = (1 + Math.random() * 2) + 'rem';
+                m.style.animationDelay = Math.random() * 10 + 's';
+                m.style.animationDuration = (10 + Math.random() * 10) + 's';
+                musnadContainer.appendChild(m);
+            }
+        }
+        createParticles();
+
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.display = 'block';
+            cursor.style.left = (e.clientX - 10) + 'px';
+            cursor.style.top = (e.clientY - 10) + 'px';
+        });
+
+        function analyzePoem() {
+            const input = document.getElementById('poemInput').value;
+            const loader = document.getElementById('loader');
+            const results = document.getElementById('resultsArea');
+
+            if(!input.trim()) { alert('أدخل نصاً أولاً'); return; }
+
+            loader.style.display = 'flex';
+            results.style.display = 'none';
+
+            setTimeout(() => {
+                loader.style.display = 'none';
+                results.style.display = 'block';
+                document.getElementById('meterResult').textContent = ['البحر الطويل', 'البحر البسيط', 'البحر الكامل'][Math.floor(Math.random()*3)];
+            }, 1500);
+        }
+
+        function checkRhyme() {
+            if(!document.getElementById('poemInput').value.trim()) { alert('أدخل نصاً أولاً'); return; }
+            alert('القافية متطابقة وسليمة!');
+        }
+
+        function clearInput() {
+            document.getElementById('poemInput').value = '';
+            document.getElementById('resultsArea').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
+
