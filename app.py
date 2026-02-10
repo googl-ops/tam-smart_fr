@@ -34,6 +34,7 @@ COLORS = {
     'midnight_blue': '#071A2F',
     'aged_gold': '#C8A44D',
     'electric_turquoise': '#00d4c8',
+    'electric_turquoise_glow': 'rgba(0, 212, 200, 0.5)',
     'sandstone_cream': '#f5f0e3',
     'error_red': '#ff4757',
     'warning_orange': '#ffa502',
