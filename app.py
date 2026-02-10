@@ -64,6 +64,17 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# ═══ إعداد أيقونة التطبيق للشاشة الرئيسية والمشاركة ═══
+st.markdown("""
+<link rel="apple-touch-icon" sizes="180x180" href="logo.jpg">
+<link rel="icon" type="image/jpeg" sizes="32x32" href="logo.jpg">
+<link rel="icon" type="image/jpeg" sizes="16x16" href="logo.jpg">
+<link rel="shortcut icon" href="logo.jpg">
+<meta name="apple-mobile-web-app-title" content="الفراهيدي الذكي">
+<meta name="application-name" content="الفراهيدي الذكي">
+<meta name="theme-color" content="#071A2F">
+""", unsafe_allow_html=True)
+
 # ═══ الألوان والتصميم ═══
 COLORS = {
     'midnight_blue': '#071A2F',
