@@ -4,7 +4,7 @@
 """
 منصة تام الثقافية الذكية - الفراهيدي الذكي
 TAM Smart Cultural Platform - Al-Farahidi Smart
-Powered by Gemini 1.5 Flash
+Powered by Gemini 2.0 Flash
 """
 
 import subprocess
@@ -28,6 +28,28 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 from enum import Enum
 
+# ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
+def get_gemini_api_key():
+    """
+    استدعاء مفتاح Gemini API من Streamlit Secrets
+    يجب إضافة المفتاح في:
+    1. لوحة تحكم Streamlit Cloud ← App Settings ← Secrets
+    2. أو ملف .streamlit/secrets.toml محلياً
+    
+    الصيغة:
+    [gemini]
+    api_key = "your-api-key-here"
+    """
+    try:
+        # محاولة استدعاء المفتاح من Secrets
+        api_key = st.secrets["gemini"]["api_key"]
+        return api_key
+    except Exception as e:
+        # إذا فشل، نتحقق من session_state (للإدخال اليدوي)
+        if 'gemini_api_key' in st.session_state and st.session_state.gemini_api_key:
+            return st.session_state.gemini_api_key
+        return None
+
 # إعداد Gemini
 try:
     import google.generativeai as genai
@@ -42,7 +64,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ═══ الألوان والتصميم (ثابت كما طلبت) ═══
+# ═══ الألوان والتصميم ═══
 COLORS = {
     'midnight_blue': '#071A2F',
     'aged_gold': '#C8A44D',
@@ -54,6 +76,7 @@ COLORS = {
     'success_green': '#2ed573',
     'purple': '#9b59b6',
     'cyan': '#00cec9',
+    'facebook_blue': '#1877F2',
     'gradient_gold': 'linear-gradient(180deg, #d4af37 0%, #C8A44D 50%, #b8941f 100%)',
     'silver_gradient': 'linear-gradient(145deg, #E8E8E8 0%, #C0C0C0 30%, #A0A0A0 60%, #D0D0D0 100%)'
 }
@@ -79,6 +102,7 @@ st.markdown(f"""
         border: 1px solid {COLORS['aged_gold']}40;
         border-radius: 30px;
         margin-top: 2rem;
+        padding-bottom: 3rem;
     }}
     
     .tam-logo-container {{
@@ -394,6 +418,123 @@ st.markdown(f"""
         border: 1px solid {COLORS['error_red']};
         color: {COLORS['error_red']};
     }}
+    
+    .secrets-info {{
+        background: rgba(0, 212, 200, 0.1);
+        border: 1px dashed {COLORS['electric_turquoise']};
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: 'Courier New', monospace;
+        font-size: 0.9rem;
+        color: {COLORS['electric_turquoise']};
+        direction: ltr;
+        text-align: left;
+    }}
+    
+    /* ═══ تصميم قسم الترحيب والفيسبوك ═══ */
+    .welcome-section {{
+        background: linear-gradient(135deg, rgba(0, 212, 200, 0.1) 0%, rgba(200, 164, 77, 0.1) 100%);
+        border: 1px solid {COLORS['electric_turquoise']}40;
+        border-radius: 20px;
+        padding: 2rem;
+        margin-top: 3rem;
+        margin-bottom: 2rem;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }}
+    
+    .welcome-section::before {{
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(to right, transparent, {COLORS['electric_turquoise']}, {COLORS['aged_gold']}, {COLORS['electric_turquoise']}, transparent);
+    }}
+    
+    .welcome-text {{
+        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-size: 1.3rem;
+        color: {COLORS['sandstone_cream']};
+        line-height: 2;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }}
+    
+    .welcome-highlight {{
+        color: {COLORS['electric_turquoise']};
+        font-weight: bold;
+    }}
+    
+    .facebook-btn-container {{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1rem;
+    }}
+    
+    .facebook-btn {{
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background: linear-gradient(135deg, #1877F2 0%, #166fe5 50%, #1256c4 100%);
+        color: white !important;
+        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-size: 1.2rem;
+        font-weight: bold;
+        padding: 1rem 2.5rem;
+        border-radius: 50px;
+        text-decoration: none;
+        border: 2px solid rgba(255,255,255,0.2);
+        box-shadow: 
+            0 4px 15px rgba(24, 119, 242, 0.4),
+            0 0 30px rgba(24, 119, 242, 0.2),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }}
+    
+    .facebook-btn::before {{
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }}
+    
+    .facebook-btn:hover::before {{
+        left: 100%;
+    }}
+    
+    .facebook-btn:hover {{
+        transform: translateY(-3px);
+        box-shadow: 
+            0 8px 25px rgba(24, 119, 242, 0.5),
+            0 0 40px rgba(24, 119, 242, 0.3),
+            inset 0 1px 0 rgba(255,255,255,0.3);
+    }}
+    
+    .facebook-icon {{
+        font-size: 1.5rem;
+    }}
+    
+    .heart-icon {{
+        color: {COLORS['error_red']};
+        animation: heartbeat 1.5s ease-in-out infinite;
+        display: inline-block;
+    }}
+    
+    @keyframes heartbeat {{
+        0%, 100% {{ transform: scale(1); }}
+        50% {{ transform: scale(1.2); }}
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -484,7 +625,7 @@ FARAHEEDI_SYSTEM_PROMPT = """
 
 # ═══ محرك Gemini الفراهيدي ═══
 class FarahidiGeminiEngine:
-    """محرك الفراهيدي الذكي باستخدام Gemini 1.5 Flash"""
+    """محرك الفراهيدي الذكي باستخدام Gemini 2.0 Flash"""
     
     def __init__(self, api_key: str = None):
         self.api_key = api_key
@@ -494,13 +635,13 @@ class FarahidiGeminiEngine:
         if GEMINI_AVAILABLE and api_key:
             try:
                 genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-flash')
+                self.model = genai.GenerativeModel('gemini-2.0-flash')
                 self.is_configured = True
             except Exception as e:
                 st.error(f"خطأ في إعداد Gemini: {str(e)}")
     
     def analyze_poetry(self, text: str) -> Dict:
-        """تحليل الشعر باستخدام الفراهيدي (Gemini)"""
+        """تحليل الشعر باستخدام الفراهيدي (Gemini 2.0 Flash)"""
         if not self.is_configured or not self.model:
             return self._fallback_analysis(text)
         
@@ -515,15 +656,14 @@ class FarahidiGeminiEngine:
                 )
             )
             
-            # استخراج JSON من الرد
             result_text = response.text
-            # إزالة علامات markdown إن وجدت
             if "```json" in result_text:
                 result_text = result_text.split("```json")[1].split("```")[0]
             elif "```" in result_text:
                 result_text = result_text.split("```")[1].split("```")[0]
             
             result = json.loads(result_text.strip())
+            result['source'] = 'Gemini 2.0 Flash'
             return result
             
         except Exception as e:
@@ -541,7 +681,8 @@ class FarahidiGeminiEngine:
             "rawwiy": "",
             "emotional_analysis": "يتطلب الاتصال بالفراهيدي الذكي",
             "grammar_notes": "",
-            "is_single_tafeela": False
+            "is_single_tafeela": False,
+            "source": "تحليل محلي"
         }
 
 # ═══ المحرك العروضي المحلي (احتياطي) ═══
@@ -676,10 +817,10 @@ def render_result(result: Dict, shatr_num: int = 1):
     emotional = result.get('emotional_analysis', '')
     grammar = result.get('grammar_notes', '')
     is_single = result.get('is_single_tafeela', False)
+    source = result.get('source', '')
     
     st.markdown(f"### الشطر {shatr_num}")
     
-    # عرض البحر والنوع والثقة
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -704,7 +845,7 @@ def render_result(result: Dict, shatr_num: int = 1):
         </div>""", unsafe_allow_html=True)
     
     with col3:
-        confidence = 95 if "Gemini" in str(result.get('source', '')) else 60
+        confidence = 98 if "Gemini" in str(source) else 60
         color = "#4CAF50" if confidence > 80 else "#ffa502"
         st.markdown(f"""
         <div class="result-card" style="border-right-color: {color}">
@@ -714,7 +855,6 @@ def render_result(result: Dict, shatr_num: int = 1):
             </div>
         </div>""", unsafe_allow_html=True)
     
-    # تنبيه شعر التفعيلة الواحدة
     if is_single and tafeelat:
         st.markdown(f"""
         <div class="status-message warning">
@@ -723,7 +863,6 @@ def render_result(result: Dict, shatr_num: int = 1):
         </div>
         """, unsafe_allow_html=True)
     
-    # عرض القافية
     if rawwiy:
         st.markdown(f"""
         <div class="qafiya-box">
@@ -736,7 +875,6 @@ def render_result(result: Dict, shatr_num: int = 1):
         </div>
         """, unsafe_allow_html=True)
     
-    # عرض التفعيلات
     if tafeelat:
         st.markdown("#### 🧩 التفعيلات:")
         cols = st.columns(min(len(tafeelat), 4))
@@ -748,7 +886,6 @@ def render_result(result: Dict, shatr_num: int = 1):
                 </div>
                 """, unsafe_allow_html=True)
     
-    # التفاصيل الإضافية
     with st.expander("🔍 تحليل الفراهيدي العميق"):
         if emotional:
             st.markdown("**المشاعر والإحساس:**")
@@ -757,6 +894,29 @@ def render_result(result: Dict, shatr_num: int = 1):
         if grammar:
             st.markdown("**الملاحظات النحوية:**")
             st.markdown(f'<div class="technical-box" style="font-family: Cairo; text-align: right; direction: rtl; color: {COLORS["warning_orange"]};">{grammar}</div>', unsafe_allow_html=True)
+        
+        if "Gemini" in str(source):
+            st.markdown(f'<div style="color: {COLORS["success_green"]}; font-size: 0.9rem; margin-top: 10px;">✓ تم التحليل بواسطة {source}</div>', unsafe_allow_html=True)
+
+# ═══ قسم الترحيب والفيسبوك ═══
+def render_welcome_section():
+    """عرض قسم الترحيب وزر الفيسبوك"""
+    st.markdown("""
+    <div class="welcome-section">
+        <div class="welcome-text">
+            أهلاً بك في <span class="welcome-highlight">منصة تام</span>.. 
+            <span class="welcome-highlight">الفراهيدي الذكي</span> بانتظارك! 
+            <span class="heart-icon">❤️</span><br>
+            لدعم استمرار هذا المشروع الثقافي، نرجو منك الانضمام لأسرتنا على فيسبوك.
+        </div>
+        <div class="facebook-btn-container">
+            <a href="https://www.facebook.com/profile.php?id=61588035955900" target="_blank" class="facebook-btn">
+                <span class="facebook-icon">📘</span>
+                <span>انضم لمجتمعنا على فيسبوك</span>
+            </a>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 def render_footer():
     st.markdown("""
@@ -766,21 +926,34 @@ def render_footer():
     """, unsafe_allow_html=True)
 
 # ═══ النوافذ الرئيسية ═══
-def diacritics_tab(engine: FarahidiGeminiEngine):
+def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
     """نافذة التشكيل والتدقيق"""
     st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
-    # حقل إدخال مفتاح Gemini
-    if not engine.is_configured:
-        with st.expander("🔑 إعداد مفتاح Gemini API"):
-            api_key = st.text_input("أدخل مفتاح Gemini API:", type="password")
-            if api_key:
-                st.session_state.gemini_api_key = api_key
-                st.rerun()
+    # عرض حالة الاتصال بالSecrets
+    if secrets_working:
+        st.markdown('<div class="gemini-status gemini-connected">🔐 المفتاح السري محمل تلقائياً من Streamlit Secrets</div>', unsafe_allow_html=True)
+    else:
+        st.warning("⚠️ لم يتم العثور على مفتاح Gemini في Secrets. سيتم استخدام التحليل المحلي.")
+        with st.expander("🔑 كيفية إضافة المفتاح السري"):
+            st.markdown("""
+            **لإضافة المفتاح في Streamlit Cloud:**
+            1. اذهب إلى لوحة تحكم تطبيقك
+            2. اضغط على **Settings** (الإعدادات)
+            3. اختر **Secrets** (أسرار)
+            4. أضف الكود التالي:
+            """)
+            st.code("""[gemini]
+api_key = "your-gemini-api-key-here"""", language="toml")
+            st.markdown("""
+            **أو محلياً في ملف `.streamlit/secrets.toml`:**
+            """)
+            st.code("""# .streamlit/secrets.toml
+[gemini]
+api_key = "your-gemini-api-key-here"""", language="toml")
     
-    # عرض حالة الاتصال
     if engine.is_configured:
-        st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 1.5 Flash)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 2.0 Flash)</div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="gemini-status gemini-disconnected">🔴 غير متصل - التحليل المحلي فعال</div>', unsafe_allow_html=True)
     
@@ -823,7 +996,6 @@ def diacritics_tab(engine: FarahidiGeminiEngine):
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # عرض النتيجة
     if st.session_state.get('analysis_result'):
         result = st.session_state.analysis_result
         
@@ -831,7 +1003,6 @@ def diacritics_tab(engine: FarahidiGeminiEngine):
         st.markdown(f'<div class="diacritics-box">{result.get("diacritized_text", "")}</div>', unsafe_allow_html=True)
         st.code(result.get("diacritized_text", ""), language="text")
         
-        # عرض التحليل العروضي مباشرة
         st.markdown("### 🎯 التحليل العروضي:")
         render_result(result, 1)
         
@@ -877,12 +1048,12 @@ def analysis_tab(engine: FarahidiGeminiEngine):
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # عرض التحليل المخزن
     if st.session_state.get('deep_analysis'):
         render_result(st.session_state.deep_analysis, 1)
     elif st.session_state.get('analysis_result'):
         st.info("استخدم التحليل من نافذة التشكيل أعلاه، أو أدخل نصاً جديداً للتحليل العميق")
 
+# ═══ الدالة الرئيسية ═══
 def main():
     render_logo()
     
@@ -891,20 +1062,24 @@ def main():
         st.session_state.raw_text = ""
     if 'final_text' not in st.session_state:
         st.session_state.final_text = ""
-    if 'gemini_api_key' not in st.session_state:
-        st.session_state.gemini_api_key = ""
     
-    # تهيئة محرك الفراهيدي
-    engine = FarahidiGeminiEngine(st.session_state.gemini_api_key)
+    # ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
+    api_key = get_gemini_api_key()
+    secrets_working = api_key is not None
     
-    # التبويبات
+    # تهيئة محرك الفراهيدي بالمفتاح (سواء من Secrets أو None)
+    engine = FarahidiGeminiEngine(api_key)
+    
     tab1, tab2 = st.tabs(["✍️ المُشكّل الآلي", "🔍 المحلل العروضي"])
     
     with tab1:
-        diacritics_tab(engine)
+        diacritics_tab(engine, secrets_working)
     
     with tab2:
         analysis_tab(engine)
+    
+    # عرض قسم الترحيب والفيسبوك
+    render_welcome_section()
     
     render_footer()
 
