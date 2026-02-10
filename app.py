@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 """
-منصة تام الثقافية الذكية - الفراهيدي الذكي 
-TAM Smart Cultural Platform - Advanced Al-Farahidi
+منصة تام الثقافية الذكية - الفراهيدي الذكي
+TAM Smart Cultural Platform - Al-Farahidi Smart
 """
 
 import subprocess
@@ -80,25 +80,42 @@ st.markdown(f"""
     
     .tam-musnad {{
         font-family: 'Times New Roman', serif; font-size: 4rem; font-weight: bold;
-        background: linear-gradient(145deg, #FFF5C3, #C8A44D 40%, #FFD700);
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.8),
+            -1px -1px 2px rgba(255,215,0,0.5),
+            0 0 20px rgba(255,215,0,0.3);
+        filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
         line-height: 1;
+        letter-spacing: 0.1em;
     }}
     
     .tam-english {{
         font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 700;
-        letter-spacing: 0.2em; text-transform: uppercase;
-        background: {COLORS['silver_gradient']};
+        letter-spacing: 0.3em; text-transform: uppercase;
+        background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 25%, #FFFFFF 50%, #A0A0A0 75%, #D0D0D0 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.8),
+            -1px -1px 2px rgba(192,192,192,0.5),
+            0 0 15px rgba(192,192,192,0.3);
+        filter: drop-shadow(0 0 8px rgba(192,192,192,0.4));
         line-height: 1;
     }}
     
     .tam-arabic {{
         font-family: 'Noto Kufi Arabic', sans-serif; font-size: 3.5rem; font-weight: bold;
-        color: {COLORS['aged_gold']};
-        text-shadow: 5px 5px 10px rgba(0,0,0,0.9);
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.8),
+            -1px -1px 2px rgba(255,215,0,0.5),
+            0 0 20px rgba(255,215,0,0.3);
+        filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
         line-height: 1;
     }}
     
@@ -155,21 +172,25 @@ st.markdown(f"""
         font-size: 1.1rem !important; border-radius: 50px !important;
         padding: 1rem 2.5rem !important; border: none !important;
         cursor: pointer !important;
+        background: transparent !important;
+        border: 2px solid {COLORS['electric_turquoise']} !important;
+        color: {COLORS['electric_turquoise']} !important;
+        transition: all 0.3s ease !important;
+    }}
+    
+    .stButton > button:hover {{
+        background: rgba(0, 212, 200, 0.1) !important;
+        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
     }}
     
     .btn-gold > button {{
-        background: linear-gradient(180deg, #d4af37 0%, #C8A44D 50%, #b8941f 100%) !important;
-        color: {COLORS['midnight_blue']} !important;
+        border-color: {COLORS['aged_gold']} !important;
+        color: {COLORS['aged_gold']} !important;
     }}
     
-    .btn-outline > button {{
-        background: transparent !important; border: 2px solid {COLORS['electric_turquoise']} !important;
-        color: {COLORS['electric_turquoise']} !important;
-    }}
-    
-    .btn-danger > button {{
-        background: transparent !important; border: 2px solid #ff6b6b !important;
-        color: #ff6b6b !important;
+    .btn-gold > button:hover {{
+        background: rgba(200, 164, 77, 0.1) !important;
+        box-shadow: 0 0 15px rgba(200, 164, 77, 0.3) !important;
     }}
     
     .tafeela-card {{
@@ -333,6 +354,15 @@ st.markdown(f"""
         background: rgba(10, 22, 40, 0.6) !important;
         border-radius: 15px;
         border: 1px solid {COLORS['aged_gold']}40;
+    }}
+    
+    .input-label {{
+        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-size: 1.1rem;
+        color: {COLORS['sandstone_cream']};
+        text-align: center;
+        margin-bottom: 10px;
+        opacity: 0.9;
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -546,7 +576,6 @@ class MetersDatabase:
         'مَفَاعِلَتُن': '1101110'
     }
     
-    # أنواع البحور: تام، مجزوء، مشطور، منهوك، متفاعلة
     METERS = {
         'الطويل': {
             'تام': ['فعولن', 'مفاعيلن', 'فعولن', 'مفاعلن'],
@@ -642,10 +671,8 @@ class QafiyaAnalyzer:
             return ""
         last_word = words[-1]
         
-        # إزالة علامات الترقيم
         last_word = re.sub(r'[^\w\s]', '', last_word)
         
-        # استخراج الحرف الأخير المتحرك
         for char in reversed(last_word):
             if char in QafiyaAnalyzer.HARAKAT_END:
                 return char
@@ -662,7 +689,6 @@ class QafiyaAnalyzer:
         if not rawwiy:
             return QafiyaAnalysis("", QafiyaType.MUTLAQ, "", False, "لم يتم التعرف على الروي")
         
-        # تحديد نوع القافية بناءً على الروي
         if 'ً' in rawwiy or 'ٌ' in rawwiy or 'ٍ' in rawwiy:
             qafiya_type = QafiyaType.TARKEEB
             pattern = "تنوين"
@@ -682,7 +708,6 @@ class QafiyaAnalyzer:
             qafiya_type = QafiyaType.MUTLAQ
             pattern = "غير محدد"
         
-        # التحقق من تطابق القافية مع الأبيات السابقة
         is_valid = True
         details = f"الروي: {rawwiy} ({pattern})"
         
@@ -697,7 +722,7 @@ class QafiyaAnalyzer:
         return QafiyaAnalysis(rawwiy, qafiya_type, pattern, is_valid, details)
 
 class FarahidiAnalyzer:
-    """المحلل العروضي المتكامل المتقدم"""
+    """المحلل العروضي المتكامل"""
     
     def __init__(self):
         self.engine = ArabicTextEngine()
@@ -715,10 +740,8 @@ class FarahidiAnalyzer:
         meter_match = self._match_meter(tafeelat)
         confidence = self._calculate_confidence(tafeelat, meter_match, binary)
         
-        # تحليل القافية
         qafiya = self.qafiya_analyzer.analyze_qafiya(text, previous_lines)
         
-        # التحقق من شعر التفعيلة الواحدة
         is_single_tafeela = self._check_single_tafeela(tafeelat)
         
         return ShatrAnalysis(
@@ -864,7 +887,7 @@ def render_logo():
         <div class="tam-arabic">تام</div>
         <div class="tam-separator"></div>
         <div class="tam-platform-name">منصة تام الثقافية الذكية</div>
-        <div class="farahidi-title"><span>🧠</span> الفراهيدي الذكي </div>
+        <div class="farahidi-title"><span>🧠</span> الفراهيدي الذكي</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -917,7 +940,6 @@ def render_qafiya(qafiya: QafiyaAnalysis):
 def render_result(res: ShatrAnalysis, shatr_num: int = 1):
     st.markdown(f"### الشطر {shatr_num}: {res.original_text}")
     
-    # عرض نوع البحر والنوع (تام/مجزوء/...)
     col1, col2, col3 = st.columns(3)
     
     with col1:
@@ -958,7 +980,6 @@ def render_result(res: ShatrAnalysis, shatr_num: int = 1):
             </div>
         </div>""", unsafe_allow_html=True)
     
-    # تنبيه شعر التفعيلة الواحدة
     if res.is_single_tafeela and res.tafeelat:
         st.markdown(f"""
         <div class="status-message warning">
@@ -967,11 +988,9 @@ def render_result(res: ShatrAnalysis, shatr_num: int = 1):
         </div>
         """, unsafe_allow_html=True)
     
-    # عرض القافية
     if res.qafiya:
         render_qafiya(res.qafiya)
     
-    # عرض التفعيلات
     if res.tafeelat:
         st.markdown("#### 🧩 التفعيلات المكتشفة:")
         cols = st.columns(min(len(res.tafeelat), 4))
@@ -979,7 +998,6 @@ def render_result(res: ShatrAnalysis, shatr_num: int = 1):
             with cols[idx % 4]:
                 render_tafeela(tafeela, idx)
     
-    # التفاصيل التقنية
     with st.expander("🔍 التفاصيل التقنية"):
         st.markdown("**النمط الصوتي (Binary):**")
         st.markdown(f'<div class="technical-box">{res.binary_code}</div>', unsafe_allow_html=True)
@@ -989,23 +1007,23 @@ def render_result(res: ShatrAnalysis, shatr_num: int = 1):
 def render_footer():
     st.markdown("""
     <div class="tam-footer">
-        جميع الحقوق محفوظة © 2026 منصة تام الثقافية | الفراهيدي الذكي المتقدم
+        جميع الحقوق محفوظة © 2026 منصة تام الثقافية | الفراهيدي الذكي
     </div>
     """, unsafe_allow_html=True)
 
 def diacritics_tab():
     """نافذة التشكيل والتدقيق اللغوي"""
-    st.markdown("### ✨ أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:")
+    st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
     raw_input = st.text_area(
-        "النص الخام",
+        "",
         value=st.session_state.get('raw_text', ''),
         height=150,
         key="input_raw",
         placeholder="اكتب النص هنا..."
     )
     
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns(2)
     
     with col1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
@@ -1020,17 +1038,9 @@ def diacritics_tab():
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button("📋 مثال", use_container_width=True, key="btn_example_diac"):
             st.session_state.raw_text = "وحلف النصب يا ايتول هنا\nتوشي الليل والاحزان جهرا"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-        if st.button("🗑️ مسح", use_container_width=True, key="btn_clear_diac"):
-            st.session_state.raw_text = ""
-            st.session_state.final_text = ""
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
@@ -1038,7 +1048,7 @@ def diacritics_tab():
         st.markdown("### 📝 النتيجة (يمكنك التعديل عليها):")
         
         final_input = st.text_area(
-            "النص الجاهز",
+            "",
             value=st.session_state.final_text,
             height=150,
             key="editor_final"
@@ -1052,8 +1062,8 @@ def diacritics_tab():
         st.info("💡 انسخ هذا النص وانتقل للنافذة الثانية، أو اضغط زر التحليل هناك مباشرة.")
 
 def analysis_tab():
-    """نافذة التحليل العروضي المتقدم"""
-    st.markdown("### 🔍 تحليل الوزن العروضي المتقدم")
+    """نافذة التحليل العروضي"""
+    st.markdown('<div class="input-label">تحليل الوزن العروضي:</div>', unsafe_allow_html=True)
     
     text_to_analyze = st.text_area(
         "",
@@ -1063,9 +1073,56 @@ def analysis_tab():
         placeholder="أدخل النص المشكل هنا..."
     )
     
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns(2)
     
     with col1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        analyze = st.button("🔍 تحليل القصيدة", use_container_width=True, key="btn_analyze", type="primary")
-        st.markdown('</div>', unsafe_allow_html=
+        analyze = st.button("🔍 تحليل القصيدة", use_container_width=True, key="btn_analyze")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+        if st.button("📋 مثال", use_container_width=True, key="btn_example_anal"):
+            st.session_state.final_text = "سَيَسْتَبْقِي الهِتَافُ إلَيْكَ دَهْرًا\nفَشَقَّ الدَّرْبَ بِالأَحْرَارِ نَصْرًا"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    if analyze:
+        if not text_to_analyze.strip():
+            st.error("⚠️ الرجاء إدخال نص وتشكيله في النافذة الأولى أولاً!")
+        else:
+            analyzer = FarahidiAnalyzer()
+            
+            lines = [s.strip() for s in re.split(r'[\n]', text_to_analyze) if s.strip()]
+            previous_lines = []
+            
+            for idx, line in enumerate(lines):
+                shatrs = re.split(r'[،,]', line)
+                
+                for shatr_idx, shatr in enumerate(shatrs):
+                    if shatr.strip():
+                        res = analyzer.analyze(shatr.strip(), previous_lines)
+                        render_result(res, idx + 1)
+                        previous_lines.append(shatr.strip())
+                        st.divider()
+
+def main():
+    render_logo()
+    
+    if 'raw_text' not in st.session_state:
+        st.session_state.raw_text = ""
+    if 'final_text' not in st.session_state:
+        st.session_state.final_text = ""
+    
+    tab1, tab2 = st.tabs(["✍️ المُشكّل الآلي", "🔍 المحلل العروضي"])
+    
+    with tab1:
+        diacritics_tab()
+    
+    with tab2:
+        analysis_tab()
+    
+    render_footer()
+
+if __name__ == "__main__":
+    main()
