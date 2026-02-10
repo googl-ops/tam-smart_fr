@@ -955,13 +955,13 @@ def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
             4. أضف الكود التالي:
             """)
             st.code("""[gemini]
-api_key = "your-gemini-api-key-here"""", language="toml")
+api_key = "your-api-key-here"""", language="toml")
             st.markdown("""
             **أو محلياً في ملف `.streamlit/secrets.toml`:**
             """)
             st.code("""# .streamlit/secrets.toml
 [gemini]
-api_key = "your-gemini-api-key-here"""", language="toml")
+api_key = "your-api-key-here"""", language="toml")
     
     if engine.is_configured:
         st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 2.0 Flash)</div>', unsafe_allow_html=True)
