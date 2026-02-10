@@ -4,13 +4,14 @@
 """
 منصة تام الثقافية الذكية - الفراهيدي الذكي
 TAM Smart Cultural Platform - Al-Farahidi Smart
+Powered by Gemini 1.5 Flash
 """
 
 import subprocess
 import sys
 
 def install_packages():
-    packages = ['streamlit', 'requests']
+    packages = ['streamlit', 'requests', 'google-generativeai']
     for package in packages:
         try:
             __import__(package)
@@ -22,8 +23,17 @@ install_packages()
 import streamlit as st
 import requests
 import re
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
+from enum import Enum
+
+# إعداد Gemini
+try:
+    import google.generativeai as genai
+    GEMINI_AVAILABLE = True
+except:
+    GEMINI_AVAILABLE = False
 
 st.set_page_config(
     page_title="مختبر الفراهيدي الذكي | منصة تام",
@@ -32,6 +42,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
+# ═══ الألوان والتصميم (ثابت كما طلبت) ═══
 COLORS = {
     'midnight_blue': '#071A2F',
     'aged_gold': '#C8A44D',
@@ -40,7 +51,11 @@ COLORS = {
     'sandstone_cream': '#f5f0e3',
     'error_red': '#ff4757',
     'warning_orange': '#ffa502',
-    'success_green': '#2ed573'
+    'success_green': '#2ed573',
+    'purple': '#9b59b6',
+    'cyan': '#00cec9',
+    'gradient_gold': 'linear-gradient(180deg, #d4af37 0%, #C8A44D 50%, #b8941f 100%)',
+    'silver_gradient': 'linear-gradient(145deg, #E8E8E8 0%, #C0C0C0 30%, #A0A0A0 60%, #D0D0D0 100%)'
 }
 
 st.markdown(f"""
@@ -59,7 +74,7 @@ st.markdown(f"""
     .stDeployButton {{display:none;}}
     
     .main .block-container {{
-        max-width: 900px; padding: 2rem;
+        max-width: 1000px; padding: 2rem;
         background: rgba(7, 26, 47, 0.6);
         border: 1px solid {COLORS['aged_gold']}40;
         border-radius: 30px;
@@ -73,23 +88,42 @@ st.markdown(f"""
     
     .tam-musnad {{
         font-family: 'Times New Roman', serif; font-size: 4rem; font-weight: bold;
-        color: {COLORS['aged_gold']};
-        text-shadow: 5px 5px 10px rgba(0,0,0,0.9);
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.8),
+            -1px -1px 2px rgba(255,215,0,0.5),
+            0 0 20px rgba(255,215,0,0.3);
+        filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
         line-height: 1;
+        letter-spacing: 0.1em;
     }}
     
     .tam-english {{
-        font-family: 'Montserrat', sans-serif; font-size: 2.5rem; font-weight: 700;
-        letter-spacing: 0.25em; text-transform: uppercase;
-        color: #C0C0C0;
-        text-shadow: 5px 5px 10px rgba(0,0,0,0.9);
+        font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 700;
+        letter-spacing: 0.3em; text-transform: uppercase;
+        background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 25%, #FFFFFF 50%, #A0A0A0 75%, #D0D0D0 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.8),
+            -1px -1px 2px rgba(192,192,192,0.5),
+            0 0 15px rgba(192,192,192,0.3);
+        filter: drop-shadow(0 0 8px rgba(192,192,192,0.4));
         line-height: 1;
     }}
     
     .tam-arabic {{
         font-family: 'Noto Kufi Arabic', sans-serif; font-size: 3.5rem; font-weight: bold;
-        color: {COLORS['aged_gold']};
-        text-shadow: 5px 5px 10px rgba(0,0,0,0.9);
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        text-shadow: 
+            2px 2px 4px rgba(0,0,0,0.8),
+            -1px -1px 2px rgba(255,215,0,0.5),
+            0 0 20px rgba(255,215,0,0.3);
+        filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
         line-height: 1;
     }}
     
@@ -114,16 +148,16 @@ st.markdown(f"""
     }}
     
     .stTextArea textarea {{
-        background: rgba(10, 20, 40, 0.9) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
         border: 2px solid {COLORS['aged_gold']}60 !important;
         border-radius: 15px !important;
         color: {COLORS['sandstone_cream']} !important;
         font-family: 'Noto Naskh Arabic', serif !important;
-        font-size: 1.4rem !important;
+        font-size: 1.2rem !important;
         line-height: 2 !important;
         text-align: center !important;
         direction: rtl !important;
-        min-height: 200px !important;
+        min-height: 150px !important;
         padding: 20px !important;
     }}
     
@@ -139,31 +173,32 @@ st.markdown(f"""
     }}
     
     .stTextArea label {{ display: none !important; }}
-    
-    .stTextArea > div > div {{
-        background: transparent !important;
-    }}
+    .stTextArea > div > div {{ background: transparent !important; }}
     
     .stButton > button {{
         font-family: 'Noto Kufi Arabic', sans-serif !important; font-weight: 700 !important;
         font-size: 1.1rem !important; border-radius: 50px !important;
         padding: 1rem 2.5rem !important; border: none !important;
         cursor: pointer !important;
+        background: transparent !important;
+        border: 2px solid {COLORS['electric_turquoise']} !important;
+        color: {COLORS['electric_turquoise']} !important;
+        transition: all 0.3s ease !important;
+    }}
+    
+    .stButton > button:hover {{
+        background: rgba(0, 212, 200, 0.1) !important;
+        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
     }}
     
     .btn-gold > button {{
-        background: linear-gradient(180deg, #d4af37 0%, #C8A44D 50%, #b8941f 100%) !important;
-        color: {COLORS['midnight_blue']} !important;
+        border-color: {COLORS['aged_gold']} !important;
+        color: {COLORS['aged_gold']} !important;
     }}
     
-    .btn-outline > button {{
-        background: transparent !important; border: 2px solid {COLORS['electric_turquoise']} !important;
-        color: {COLORS['electric_turquoise']} !important;
-    }}
-    
-    .btn-danger > button {{
-        background: transparent !important; border: 2px solid #ff6b6b !important;
-        color: #ff6b6b !important;
+    .btn-gold > button:hover {{
+        background: rgba(200, 164, 77, 0.1) !important;
+        box-shadow: 0 0 15px rgba(200, 164, 77, 0.3) !important;
     }}
     
     .tafeela-card {{
@@ -176,32 +211,20 @@ st.markdown(f"""
     .tafeela-card.error {{ border-color: {COLORS['error_red']}; }}
     .tafeela-card.warning {{ border-color: {COLORS['warning_orange']}; }}
     .tafeela-card.success {{ border-color: {COLORS['success_green']}; }}
+    .tafeela-card.purple {{ border-color: {COLORS['purple']}; }}
+    .tafeela-card.cyan {{ border-color: {COLORS['cyan']}; }}
     
     .tafeela-name {{
         font-family: 'Noto Kufi Arabic', sans-serif;
-        font-size: 2rem; font-weight: bold;
+        font-size: 1.8rem; font-weight: bold;
         color: {COLORS['electric_turquoise']}; margin-bottom: 0.5rem;
     }}
     
-    .tafeela-name.error {{ color: {COLORS['error_red']}; }}
-    .tafeela-name.warning {{ color: {COLORS['warning_orange']}; }}
-    
     .tafeela-pattern {{
-        font-family: 'Courier New', monospace; font-size: 1.5rem;
+        font-family: 'Courier New', monospace; font-size: 1.3rem;
         color: {COLORS['sandstone_cream']}; letter-spacing: 0.2em;
         direction: ltr; display: inline-block;
     }}
-    
-    .tafeela-status {{
-        position: absolute; top: 10px; left: 10px;
-        width: 30px; height: 30px; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center;
-        font-weight: bold; font-size: 1.2rem;
-    }}
-    
-    .tafeela-status.error {{ background: {COLORS['error_red']}; color: white; }}
-    .tafeela-status.warning {{ background: {COLORS['warning_orange']}; color: white; }}
-    .tafeela-status.success {{ background: {COLORS['success_green']}; color: white; }}
     
     .status-message {{
         padding: 1.5rem; border-radius: 15px; margin: 1rem 0;
@@ -226,16 +249,26 @@ st.markdown(f"""
         color: {COLORS['error_red']};
     }}
     
-    .break-info {{
-        background: rgba(255, 71, 87, 0.1);
-        border-right: 4px solid {COLORS['error_red']};
-        padding: 1rem; margin: 0.5rem 0;
-        border-radius: 5px; text-align: right;
+    .result-card {{
+        background: rgba(10, 22, 40, 0.6);
+        border-right: 4px solid {COLORS['electric_turquoise']};
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }}
     
-    .break-location {{
-        color: {COLORS['error_red']}; font-weight: bold;
-        font-family: 'Noto Kufi Arabic', sans-serif;
+    .result-label {{
+        color: {COLORS['aged_gold']};
+        font-weight: bold;
+        font-size: 0.9rem;
+    }}
+    
+    .result-value {{
+        font-size: 1.4rem;
+        color: {COLORS['sandstone_cream']};
     }}
     
     .technical-box {{
@@ -247,51 +280,72 @@ st.markdown(f"""
         word-break: break-all;
     }}
     
+    .diacritics-box {{
+        background: rgba(0, 0, 0, 0.2);
+        border: 1px dashed {COLORS['electric_turquoise']};
+        padding: 20px;
+        border-radius: 10px;
+        font-family: 'Noto Naskh Arabic';
+        font-size: 1.3rem;
+        line-height: 2.5;
+        text-align: center;
+        color: #fff;
+        margin-top: 20px;
+    }}
+    
+    .qafiya-box {{
+        background: rgba(155, 89, 182, 0.2);
+        border: 2px solid {COLORS['purple']};
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        text-align: center;
+    }}
+    
+    .meter-type-badge {{
+        display: inline-block;
+        padding: 0.5rem 1.5rem;
+        border-radius: 25px;
+        font-weight: bold;
+        font-family: 'Noto Kufi Arabic';
+        margin: 0.5rem;
+    }}
+    
+    .badge-tam {{ background: {COLORS['success_green']}; color: white; }}
+    .badge-majzoo {{ background: {COLORS['warning_orange']}; color: white; }}
+    .badge-mashtoor {{ background: {COLORS['purple']}; color: white; }}
+    .badge-manhooq {{ background: {COLORS['error_red']}; color: white; }}
+    .badge-mutafa {{ background: {COLORS['cyan']}; color: white; }}
+    
     .tam-footer {{
         text-align: center; padding: 2rem;
         color: rgba(245, 240, 227, 0.5); font-size: 0.9rem;
         margin-top: 2rem; border-top: 1px solid {COLORS['aged_gold']}20;
     }}
     
-    /* تنسيقات نافذة التشكيل والتدقيق */
-    .diacritics-box {{
-        background: rgba(10, 20, 40, 0.9) !important;
-        border: 2px solid {COLORS['electric_turquoise']}60 !important;
-        border-radius: 15px !important;
-        color: {COLORS['sandstone_cream']} !important;
-        font-family: 'Noto Naskh Arabic', serif !important;
-        font-size: 1.4rem !important;
-        line-height: 2.5 !important;
-        text-align: center !important;
-        direction: rtl !important;
-        padding: 25px !important;
-        min-height: 200px !important;
-        white-space: pre-wrap !important;
-    }}
-    
     .stTabs [data-baseweb="tab-list"] {{
-        gap: 10px;
-        background: rgba(7, 26, 47, 0.8);
+        gap: 20px;
+        background-color: rgba(10, 22, 40, 0.5);
         padding: 10px;
         border-radius: 15px;
         border: 1px solid {COLORS['aged_gold']}40;
     }}
     
     .stTabs [data-baseweb="tab"] {{
-        background: transparent;
-        color: {COLORS['sandstone_cream']};
-        font-family: 'Noto Kufi Arabic', sans-serif;
-        font-size: 1rem;
+        height: 50px;
+        white-space: pre-wrap;
+        background-color: transparent;
         border-radius: 10px;
-        padding: 10px 20px;
+        color: {COLORS['sandstone_cream']};
+        font-family: 'Noto Kufi Arabic';
     }}
     
     .stTabs [aria-selected="true"] {{
-        background: {COLORS['electric_turquoise']}30 !important;
-        border: 1px solid {COLORS['electric_turquoise']} !important;
+        background-color: {COLORS['electric_turquoise']} !important;
+        color: {COLORS['midnight_blue']} !important;
+        font-weight: bold;
     }}
     
-    /* إزالة الخلفية البيضاء من جميع العناصر */
     .stMarkdown, .stTextArea, div[data-testid="stVerticalBlock"] {{
         background: transparent !important;
     }}
@@ -309,8 +363,59 @@ st.markdown(f"""
         border-radius: 15px;
         border: 1px solid {COLORS['aged_gold']}40;
     }}
+    
+    .input-label {{
+        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-size: 1.1rem;
+        color: {COLORS['sandstone_cream']};
+        text-align: center;
+        margin-bottom: 10px;
+        opacity: 0.9;
+    }}
+    
+    .gemini-status {{
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }}
+    
+    .gemini-connected {{
+        background: rgba(46, 213, 115, 0.2);
+        border: 1px solid {COLORS['success_green']};
+        color: {COLORS['success_green']};
+    }}
+    
+    .gemini-disconnected {{
+        background: rgba(255, 71, 87, 0.2);
+        border: 1px solid {COLORS['error_red']};
+        color: {COLORS['error_red']};
+    }}
 </style>
 """, unsafe_allow_html=True)
+
+# ═══ أنواع البحور ═══
+class MeterType(Enum):
+    TAM = "تام"
+    MAJZOO = "مجزوء"
+    MASHTOOR = "مشطور"
+    MANHOOQ = "منهوك"
+    MUTAFAILA = "متفاعلة"
+
+class QafiyaType(Enum):
+    ISNAD = "إسناد"
+    TARKEEB = "تركيب"
+    TAM = "تم"
+    MURABA = "مرتابع"
+    MUTLAQ = "مطلق"
+    MUTADARIK = "متدارك"
+    MUKARRAM = "مكرر"
+    MUTAWAZI = "متوازٍ"
+    MUTAMAN = "متماثل"
+    MUTAJANIS = "متجانس"
 
 @dataclass
 class TafeelaResult:
@@ -319,365 +424,214 @@ class TafeelaResult:
     actual: str
     status: str
     position: int
-    break_info: Optional[str] = None
     zahaf: Optional[str] = None
+    is_complete: bool = True
 
 @dataclass
-class AnalysisResult:
-    original_text: str
-    binary_code: str
-    tafeelat: List[TafeelaResult]
-    meter_name: Optional[str]
-    meter_type: Optional[str]
-    status: str
-    break_count: int
-    break_locations: List[str]
+class QafiyaAnalysis:
+    rawwiy: str
+    type: QafiyaType
+    pattern: str
+    is_valid: bool
+    details: str
 
-class SmartArudiEngine:
-    """محرك عروضي ذكي يتعامل مع النصوص غير المشكولة"""
+@dataclass
+class ShatrAnalysis:
+    original_text: str = ""
+    arudi_text: str = ""
+    binary_code: str = ""
+    tafeelat: List[TafeelaResult] = field(default_factory=list)
+    meter_name: Optional[str] = None
+    meter_type: MeterType = None
+    meter_subtype: str = ""
+    confidence: float = 0.0
+    is_valid: bool = False
+    qafiya: Optional[QafiyaAnalysis] = None
+    is_single_tafeela: bool = False
+    emotional_analysis: str = ""
+    grammar_check: str = ""
+
+# ═══ تعليمات صارمة للفراهيدي (Gemini) ═══
+FARAHEEDI_SYSTEM_PROMPT = """
+أنت الخليل بن أحمد الفراهيدي، إمام علم العروض، والمتخصص الأعلى في:
+1. التشكيل الدقيق للشعر العربي
+2. تحليل البحور العروضية بجميع تفرعاتها (تام، مجزوء، مشطور، منهوك، متفاعلة)
+3. تحليل القوافي (إسناد، تركيب، مرتابع، متدارك، مطلق...)
+4. النحو والصرف واللغة العربية الفصحى
+5. فهم مشاعر القصيدة وقراءتها قراءة عميقة
+
+قواعد صارمة يجب الالتزام بها:
+- حلل البحر بدقة: الطويل، البسيط، الكامل، الوافر، الخفيف، السريع، الرجز، الرمل، المتقارب، المتدارك، المديد، الهزج، المنسرح
+- حدد النوع: تام (4 تفعيلات)، مجزوء (3)، مشطور (2)، منهوك (1)، متفاعلة (تكرار نفس التفعيلة)
+- اكتب التشكيل الكامل والصحيح للبيت
+- حلل القافية وحدد نوعها ورويها
+- اشرح المشاعر والإحساس العام للقصيدة
+- صحح الأخطاء النحوية والإملائية إن وجدت
+
+أعد النتيجة بتنسيق JSON فقط:
+{
+    "diacritized_text": "النص المشكل",
+    "meter_name": "اسم البحر",
+    "meter_type": "تام/مجزوء/مشطور/منهوك/متفاعلة",
+    "tafeelat": ["اسم التفعيلة 1", "اسم التفعيلة 2"],
+    "qafiya_type": "نوع القافية",
+    "rawwiy": "الروي",
+    "emotional_analysis": "تحليل المشاعر",
+    "grammar_notes": "ملاحظات نحوية",
+    "is_single_tafeela": true/false
+}
+"""
+
+# ═══ محرك Gemini الفراهيدي ═══
+class FarahidiGeminiEngine:
+    """محرك الفراهيدي الذكي باستخدام Gemini 1.5 Flash"""
     
-    TAFEELAT = {
-        'فعولن': {'pattern': '11010', 'variants': ['1100', '1110', '11011']},
-        'مفاعيلن': {'pattern': '1101010', 'variants': ['110100', '110110', '1101011']},
-        'مفاعلن': {'pattern': '110110', 'variants': ['11010', '110111']},
-        'فاعلاتن': {'pattern': '1011010', 'variants': ['101100', '101110', '101111']},
-        'فاعلن': {'pattern': '10110', 'variants': ['1011', '10101']},
-        'مستفعلن': {'pattern': '1011010', 'variants': ['101100', '11010', '1010110']},
-        'متفاعلن': {'pattern': '1110110', 'variants': ['111010', '1111110']},
-        'مفاعلتن': {'pattern': '1101110', 'variants': ['110110', '110111']},
-    }
+    def __init__(self, api_key: str = None):
+        self.api_key = api_key
+        self.model = None
+        self.is_configured = False
+        
+        if GEMINI_AVAILABLE and api_key:
+            try:
+                genai.configure(api_key=api_key)
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
+                self.is_configured = True
+            except Exception as e:
+                st.error(f"خطأ في إعداد Gemini: {str(e)}")
     
-    METERS = {
-        'الطويل': {'pattern': ['فعولن', 'مفاعيلن', 'فعولن', 'مفاعلن']},
-        'المديد': {'pattern': ['فاعلاتن', 'فاعلن', 'فاعلاتن']},
-        'البسيط': {'pattern': ['مستفعلن', 'فاعلن', 'مستفعلن', 'فاعلن']},
-        'الوافر': {'pattern': ['مفاعلتن', 'مفاعلتن', 'فعولن']},
-        'الكامل': {'pattern': ['متفاعلن', 'متفاعلن', 'متفاعلن']},
-        'الهزج': {'pattern': ['مفاعيلن', 'فاعلاتن']},
-        'الرجز': {'pattern': ['مستفعلن', 'مستفعلن', 'مستفعلن']},
-        'الرمل': {'pattern': ['فاعلاتن', 'فاعلاتن', 'فاعلاتن']},
-        'السريع': {'pattern': ['مستفعلن', 'مستفعلن', 'فاعلن']},
-        'المنسرح': {'pattern': ['مستفعلن', 'فاعلاتن', 'مستفعلن', 'فاعلن']},
-        'الخفيف': {'pattern': ['فاعلاتن', 'مستفعلن', 'فاعلاتن']},
-        'المتقارب': {'pattern': ['فعولن', 'فعولن', 'فعولن', 'فعولن']},
-        'المتدارك': {'pattern': ['فاعلن', 'فاعلن', 'فاعلن', 'فاعلن']},
-    }
+    def analyze_poetry(self, text: str) -> Dict:
+        """تحليل الشعر باستخدام الفراهيدي (Gemini)"""
+        if not self.is_configured or not self.model:
+            return self._fallback_analysis(text)
+        
+        try:
+            prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
+            
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=2048,
+                )
+            )
+            
+            # استخراج JSON من الرد
+            result_text = response.text
+            # إزالة علامات markdown إن وجدت
+            if "```json" in result_text:
+                result_text = result_text.split("```json")[1].split("```")[0]
+            elif "```" in result_text:
+                result_text = result_text.split("```")[1].split("```")[0]
+            
+            result = json.loads(result_text.strip())
+            return result
+            
+        except Exception as e:
+            st.warning(f"تعذر الاتصال بالفراهيدي الذكي، سيتم استخدام التحليل المحلي: {str(e)}")
+            return self._fallback_analysis(text)
     
-    @staticmethod
-    def smart_normalize(text: str) -> str:
-        text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
-        text = text.replace('ؤ', 'و').replace('ئ', 'ي').replace('ء', '')
+    def _fallback_analysis(self, text: str) -> Dict:
+        """تحليل بديل محلي عند فشل Gemini"""
+        return {
+            "diacritized_text": text,
+            "meter_name": "غير محدد (تحليل محلي)",
+            "meter_type": "غير معروف",
+            "tafeelat": [],
+            "qafiya_type": "غير محدد",
+            "rawwiy": "",
+            "emotional_analysis": "يتطلب الاتصال بالفراهيدي الذكي",
+            "grammar_notes": "",
+            "is_single_tafeela": False
+        }
+
+# ═══ المحرك العروضي المحلي (احتياطي) ═══
+class ArabicTextEngine:
+    """المحرك العروضي المحلي الاحتياطي"""
+    
+    ARABIC_LETTERS = set('ابتثجحخدذرزسشصضطظعغفقكلمنهويى')
+    HARAKAT = set('ًٌٍَُِّْ')
+    SOLAR_LETTERS = set('تثدذرزسشصضطظلن')
+
+    @classmethod
+    def smart_tokenize(cls, text: str) -> List[Dict]:
+        text = cls._normalize_text(text)
+        tokens = []
+        i = 0
+        length = len(text)
+        
+        while i < length:
+            char = text[i]
+            if char in ' \n':
+                i += 1
+                continue
+            if char not in cls.ARABIC_LETTERS:
+                i += 1
+                continue
+            
+            next_char = text[i+1] if i+1 < length else None
+            
+            if char == 'ا' and next_char == 'ل':
+                after_lam = text[i+2] if i+2 < length else None
+                if after_lam and after_lam in cls.SOLAR_LETTERS:
+                    tokens.append({'letter': 'ا', 'haraka': {'type': 'mutaharrik', 'symbol': 'َ'}})
+                    i += 2
+                    continue
+                else:
+                    tokens.append({'letter': 'ا', 'haraka': {'type': 'mutaharrik', 'symbol': 'َ'}})
+                    tokens.append({'letter': 'ل', 'haraka': {'type': 'sakin', 'symbol': 'ْ'}})
+                    i += 2
+                    continue
+
+            if next_char in cls.HARAKAT:
+                if next_char == 'ّ':
+                    tokens.append({'letter': char, 'haraka': {'type': 'sakin', 'symbol': 'ْ'}})
+                    tokens.append({'letter': char, 'haraka': {'type': 'mutaharrik', 'symbol': 'َ'}})
+                    i += 2
+                elif next_char == 'ْ':
+                    tokens.append({'letter': char, 'haraka': {'type': 'sakin', 'symbol': 'ْ'}})
+                    i += 2
+                else:
+                    tokens.append({'letter': char, 'haraka': {'type': 'mutaharrik', 'symbol': next_char}})
+                    i += 2
+                continue
+
+            haraka = cls._infer_vowel(char, i, text)
+            tokens.append({'letter': char, 'haraka': haraka})
+            i += 1
+            
+        return tokens
+    
+    @classmethod
+    def _normalize_text(cls, text: str) -> str:
+        if not text: 
+            return ""
+        text = text.replace('\u0640', '')
+        hamza_map = {'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ؤ': 'و', 'ئ': 'ي', 'ء': ''}
+        for old, new in hamza_map.items():
+            text = text.replace(old, new)
         text = text.replace('ة', 'ه')
         return text
     
-    @staticmethod
-    def syllable_analysis(text: str) -> List[Dict]:
-        text = SmartArudiEngine.smart_normalize(text)
-        syllables = []
-        i = 0
+    @classmethod
+    def _infer_vowel(cls, char: str, position: int, text: str) -> Dict:
+        if position == len(text) - 1 or (position + 1 < len(text) and text[position + 1] == ' '):
+            if char in 'دذرزسوي':
+                return {'type': 'sakin', 'symbol': 'ْ', 'source': 'rule_waqf'}
         
-        while i < len(text):
-            char = text[i]
-            
-            if char == ' ':
-                i += 1
-                continue
-            
-            if char not in 'ابتثجحخدذرزسشصضطظعغفقكلمنهويى':
-                i += 1
-                continue
-            
-            next_char = text[i+1] if i+1 < len(text) else None
-            
-            if char in 'اويى':
-                if next_char and next_char in 'َُِ':
-                    syllables.append({'type': 'short', 'char': char, 'haraka': next_char})
-                    i += 2
-                else:
-                    syllables.append({'type': 'long', 'char': char})
-                    i += 1
-            
-            elif char == 'ا':
-                syllables.append({'type': 'long', 'char': char})
-                i += 1
-            
-            elif char == 'ل' and i > 0 and text[i-1] == 'ا':
-                i += 1
-            
-            else:
-                if next_char in 'ًٌٍَُِّْ':
-                    if next_char == 'ْ':
-                        syllables.append({'type': 'closed', 'char': char})
-                    elif next_char == 'ّ':
-                        syllables.append({'type': 'shadda', 'char': char})
-                    elif next_char in 'ًٌٍ':
-                        syllables.append({'type': 'tanween', 'char': char})
-                    else:
-                        syllables.append({'type': 'open', 'char': char, 'haraka': next_char})
-                    i += 2
-                else:
-                    syllables.append({'type': 'open', 'char': char, 'haraka': 'َ'})
-                    i += 1
+        if char == 'ي': 
+            return {'type': 'mutaharrik', 'symbol': 'ِ', 'source': 'rule_ya'}
+        elif char == 'و': 
+            return {'type': 'mutaharrik', 'symbol': 'ُ', 'source': 'rule_waw'}
+        elif char == 'ا': 
+            return {'type': 'sakin', 'symbol': 'ْ', 'source': 'rule_alif'}
         
-        return syllables
-    
-    @staticmethod
-    def syllables_to_binary(syllables: List[Dict]) -> str:
-        binary = []
-        
-        for syl in syllables:
-            if syl['type'] == 'long':
-                binary.append('0')
-            elif syl['type'] == 'closed':
-                binary.append('0')
-            elif syl['type'] == 'shadda':
-                binary.append('0')
-                binary.append('1')
-            elif syl['type'] == 'tanween':
-                binary.append('1')
-                binary.append('0')
-            else:
-                binary.append('1')
-        
-        return ''.join(binary)
-    
-    @staticmethod
-    def extract_tafeelat(binary: str) -> List[TafeelaResult]:
-        results = []
-        i = 0
-        
-        while i < len(binary):
-            found = False
-            
-            for name, info in sorted(SmartArudiEngine.TAFEELAT.items(), 
-                                    key=lambda x: len(x[1]['pattern']), reverse=True):
-                pattern = info['pattern']
-                length = len(pattern)
-                
-                if i + length <= len(binary):
-                    segment = binary[i:i+length]
-                    
-                    if segment == pattern:
-                        results.append(TafeelaResult(
-                            name=name, pattern=pattern, actual=segment,
-                            status='complete', position=i
-                        ))
-                        i += length
-                        found = True
-                        break
-                    
-                    elif segment in info['variants']:
-                        zahaf_name = SmartArudiEngine._identify_zahaf(segment, pattern)
-                        results.append(TafeelaResult(
-                            name=name, pattern=pattern, actual=segment,
-                            status='complete', position=i, zahaf=zahaf_name
-                        ))
-                        i += length
-                        found = True
-                        break
-                    
-                    elif SmartArudiEngine._is_acceptable(segment, pattern):
-                        results.append(TafeelaResult(
-                            name=name, pattern=pattern, actual=segment,
-                            status='complete', position=i, zahaf='زحاف خفيف'
-                        ))
-                        i += length
-                        found = True
-                        break
-            
-            if not found:
-                i += 1
-        
-        return results
-    
-    @staticmethod
-    def _identify_zahaf(variant: str, original: str) -> str:
-        zahafat = {
-            '1100': 'خبن', '1110': 'طي', '11011': 'إعلال',
-            '110100': 'خبن', '110110': 'إقامة', '1101011': 'كسر',
-            '101100': 'خبن', '101110': 'طي', '101111': 'إعلال',
-        }
-        return zahafat.get(variant, 'زحاف')
-    
-    @staticmethod
-    def _is_acceptable(segment: str, pattern: str) -> bool:
-        if len(segment) != len(pattern):
-            return False
-        
-        diff_count = sum(1 for a, p in zip(segment, pattern) if a != p)
-        
-        if diff_count == 1:
-            diff_pos = next(i for i, (a, p) in enumerate(zip(segment, pattern)) if a != p)
-            if diff_pos in [2, 3, 4]:
-                return True
-        
-        return diff_count == 0
-    
-    @staticmethod
-    def identify_meter(tafeelat: List[TafeelaResult]) -> Tuple[Optional[str], Optional[str], str]:
-        if not tafeelat:
-            return None, None, "invalid"
-        
-        detected_names = [t.name for t in tafeelat]
-        
-        best_match = None
-        best_score = 0
-        
-        for meter_name, meter_info in SmartArudiEngine.METERS.items():
-            expected = meter_info['pattern']
-            
-            matches = 0
-            for i, exp in enumerate(expected):
-                if i < len(detected_names):
-                    if detected_names[i] == exp:
-                        matches += 1.0
-                    elif SmartArudiEngine._are_related(detected_names[i], exp):
-                        matches += 0.8
-            
-            score = matches / len(expected) if expected else 0
-            
-            if score > best_score:
-                best_score = score
-                best_match = (meter_name, meter_info, score)
-        
-        if not best_match or best_score < 0.5:
-            return None, None, "invalid"
-        
-        meter_name, meter_info, score = best_match
-        
-        if len(tafeelat) >= len(meter_info['pattern']):
-            meter_type = "تام"
-        elif len(tafeelat) == len(meter_info['pattern']) - 1:
-            meter_type = "مجزوء"
-        else:
-            meter_type = "مشطور"
-        
-        status = "valid" if score >= 0.7 else "partial" if score >= 0.5 else "invalid"
-        
-        return meter_name, meter_type, status
-    
-    @staticmethod
-    def _are_related(t1: str, t2: str) -> bool:
-        if t1[:3] == t2[:3]:
-            return True
-        
-        pairs = [
-            ('فعولن', 'مفاعيلن'), ('فاعلن', 'فاعلاتن'),
-            ('مستفعلن', 'فاعلاتن'), ('متفاعلن', 'مفاعلتن')
-        ]
-        
-        for a, b in pairs:
-            if (t1 == a and t2 == b) or (t1 == b and t2 == a):
-                return True
-        
-        return False
+        return {'type': 'mutaharrik', 'symbol': 'َ', 'source': 'default'}
 
-class DiacriticsEngine:
-    """محرك التشكيل والتدقيق اللغوي"""
-    
-    @staticmethod
-    def add_diacritics(text: str) -> str:
-        """إضافة التشكيل للنص"""
-        try:
-            url = "https://qutrub.arabeyes.org/api/diacritize"
-            headers = {"Content-Type": "application/json"}
-            data = {"text": text}
-            
-            response = requests.post(url, json=data, headers=headers, timeout=30)
-            
-            if response.status_code == 200:
-                result = response.json()
-                return result.get("diacritized_text", text)
-            else:
-                return DiacriticsEngine._fallback_diacritics(text)
-                
-        except Exception:
-            return DiacriticsEngine._fallback_diacritics(text)
-    
-    @staticmethod
-    def _fallback_diacritics(text: str) -> str:
-        """تشكيل بديل بسيط"""
-        lines = text.strip().split('\n')
-        diacritized_lines = []
-        
-        for line in lines:
-            words = line.split()
-            diacritized_words = []
-            
-            for word in words:
-                diacritized_word = DiacriticsEngine._apply_basic_diacritics(word)
-                diacritized_words.append(diacritized_word)
-            
-            diacritized_lines.append(' '.join(diacritized_words))
-        
-        return '\n'.join(diacritized_lines)
-    
-    @staticmethod
-    def _apply_basic_diacritics(word: str) -> str:
-        """تطبيق قواعد تشكيل أساسية"""
-        if not word:
-            return word
-        
-        # قواعد بسيطة للتشكيل
-        if word.endswith('ت') or word.endswith('ن') or word.endswith('ا'):
-            if not any(h in word for h in 'ًٌٍَُِّْ'):
-                return word + 'ُ'
-        
-        if len(word) <= 3:
-            return word + 'َ'
-        
-        return word
-    
-    @staticmethod
-    def spell_check(text: str) -> Tuple[str, List[str]]:
-        """التدقيق الإملائي"""
-        corrections = []
-        lines = text.split('\n')
-        corrected_lines = []
-        
-        common_errors = {
-            'هذا': 'هَذَا',
-            'التي': 'التِي',
-            'الذي': 'الذِي',
-            'في': 'فِي',
-            'من': 'مِن',
-            'إلى': 'إلَى',
-            'على': 'عَلَى',
-            'عن': 'عَن',
-        }
-        
-        for line in lines:
-            words = line.split()
-            corrected_words = []
-            
-            for word in words:
-                clean_word = re.sub(r'[^\w\s]', '', word)
-                if clean_word in common_errors:
-                    corrections.append(f"تصحيح: {word} ← {common_errors[clean_word]}")
-                    corrected_words.append(common_errors[clean_word])
-                else:
-                    corrected_words.append(word)
-            
-            corrected_lines.append(' '.join(corrected_words))
-        
-        return '\n'.join(corrected_lines), corrections
-    
-    @staticmethod
-    def grammar_check(text: str) -> List[str]:
-        """التدقيق النحوي البسيط"""
-        suggestions = []
-        
-        if 'في في' in text:
-            suggestions.append("تكرار حرف الجر 'في'")
-        
-        if 'من من' in text:
-            suggestions.append("تكرار حرف الجر 'من'")
-        
-        if text.strip().endswith('و'):
-            suggestions.append("الجملة تنتهي بحرف العطف 'و'")
-        
-        return suggestions
+    @classmethod
+    def tokens_to_binary(cls, tokens: List[Dict]) -> str:
+        return ''.join('1' if t['haraka']['type'] == 'mutaharrik' else '0' for t in tokens)
 
+# ═══ دوال العرض ═══
 def render_logo():
     st.markdown("""
     <div class="tam-logo-container">
@@ -690,203 +644,267 @@ def render_logo():
     </div>
     """, unsafe_allow_html=True)
 
-def render_tafeela(tafeela: TafeelaResult, index: int):
-    status_class = 'success' if tafeela.status == 'complete' else 'warning' if tafeela.zahaf else 'error'
-    status_symbol = "✓" if status_class == 'success' else "!" if status_class == 'warning' else "✗"
-    
-    zahaf_text = f'<div style="color: #ffa502; font-size: 0.9rem;">زحاف: {tafeela.zahaf}</div>' if tafeela.zahaf else ''
-    
-    st.markdown(f"""
-    <div class="tafeela-card {status_class}">
-        <div class="tafeela-status {status_class}">{status_symbol}</div>
-        <div class="tafeela-name {status_class}">{tafeela.name}</div>
-        <div class="tafeela-pattern">{tafeela.actual}</div>
-        {zahaf_text}
-    </div>
-    """, unsafe_allow_html=True)
+def get_meter_type_enum(type_str: str) -> MeterType:
+    type_map = {
+        'تام': MeterType.TAM,
+        'مجزوء': MeterType.MAJZOO,
+        'مشطور': MeterType.MASHTOOR,
+        'منهوك': MeterType.MANHOOQ,
+        'متفاعلة': MeterType.MUTAFAILA
+    }
+    return type_map.get(type_str, MeterType.TAM)
 
-def render_result(result: AnalysisResult):
-    st.markdown("### 🎯 نتائج التحليل العروضي")
+def get_meter_badge_class(meter_type: MeterType) -> str:
+    badge_map = {
+        MeterType.TAM: 'badge-tam',
+        MeterType.MAJZOO: 'badge-majzoo',
+        MeterType.MASHTOOR: 'badge-mashtoor',
+        MeterType.MANHOOQ: 'badge-manhooq',
+        MeterType.MUTAFAILA: 'badge-mutafa'
+    }
+    return badge_map.get(meter_type, 'badge-tam')
+
+def render_result(result: Dict, shatr_num: int = 1):
+    """عرض نتائج التحليل"""
     
-    if result.status == "valid":
+    meter_name = result.get('meter_name', 'غير محدد')
+    meter_type_str = result.get('meter_type', 'غير معروف')
+    meter_type = get_meter_type_enum(meter_type_str)
+    tafeelat = result.get('tafeelat', [])
+    qafiya_type = result.get('qafiya_type', 'غير محدد')
+    rawwiy = result.get('rawwiy', '')
+    emotional = result.get('emotional_analysis', '')
+    grammar = result.get('grammar_notes', '')
+    is_single = result.get('is_single_tafeela', False)
+    
+    st.markdown(f"### الشطر {shatr_num}")
+    
+    # عرض البحر والنوع والثقة
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
         st.markdown(f"""
-        <div class="status-message success">
-            ✅ البحر المحدد: <strong>{result.meter_name} ({result.meter_type})</strong><br>
-            القصيدة موزونة بشكل صحيح
-        </div>
-        """, unsafe_allow_html=True)
-    elif result.status == "partial":
+        <div class="result-card">
+            <div>
+                <div class="result-label">البحر</div>
+                <div class="result-value">{meter_name}</div>
+            </div>
+        </div>""", unsafe_allow_html=True)
+    
+    with col2:
+        badge_class = get_meter_badge_class(meter_type)
+        st.markdown(f"""
+        <div class="result-card">
+            <div>
+                <div class="result-label">النوع</div>
+                <div class="result-value">
+                    <span class="meter-type-badge {badge_class}">{meter_type_str}</span>
+                </div>
+            </div>
+        </div>""", unsafe_allow_html=True)
+    
+    with col3:
+        confidence = 95 if "Gemini" in str(result.get('source', '')) else 60
+        color = "#4CAF50" if confidence > 80 else "#ffa502"
+        st.markdown(f"""
+        <div class="result-card" style="border-right-color: {color}">
+            <div>
+                <div class="result-label">الثقة</div>
+                <div class="result-value" style="color:{color}">{confidence}%</div>
+            </div>
+        </div>""", unsafe_allow_html=True)
+    
+    # تنبيه شعر التفعيلة الواحدة
+    if is_single and tafeelat:
         st.markdown(f"""
         <div class="status-message warning">
-            ⚠️ البحر المحتمل: <strong>{result.meter_name} ({result.meter_type})</strong><br>
-            يوجد بعض الزحافات في التحليل
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="status-message error">
-            ❌ <strong>لا يمكن تحديد البحر بدقة</strong><br>
-            الرجاء التحقق من التشكيل أو إدخال نص أوضح
+            ⚡ <strong>شعر التفعيلة الواحدة</strong><br>
+            هذا الشطر يستخدم تفعيلة <strong>{tafeelat[0]}</strong> متكررة
         </div>
         """, unsafe_allow_html=True)
     
-    if result.tafeelat:
-        st.markdown("#### 🧩 التفعيلات المكتشفة:")
-        for idx, tafeela in enumerate(result.tafeelat):
-            render_tafeela(tafeela, idx)
+    # عرض القافية
+    if rawwiy:
+        st.markdown(f"""
+        <div class="qafiya-box">
+            <div style="font-size: 1.3rem; font-weight: bold; color: {COLORS['purple']}; margin-bottom: 10px;">
+                القافية: {qafiya_type}
+            </div>
+            <div style="font-size: 1.1rem; color: {COLORS['sandstone_cream']};">
+                الروي: <strong>{rawwiy}</strong>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     
-    with st.expander("🔍 النمط الصوتي"):
-        st.markdown(f'<div class="technical-box">{result.binary_code}</div>', unsafe_allow_html=True)
+    # عرض التفعيلات
+    if tafeelat:
+        st.markdown("#### 🧩 التفعيلات:")
+        cols = st.columns(min(len(tafeelat), 4))
+        for idx, taf in enumerate(tafeelat):
+            with cols[idx % 4]:
+                st.markdown(f"""
+                <div class="tafeela-card success">
+                    <div class="tafeela-name">{taf}</div>
+                </div>
+                """, unsafe_allow_html=True)
+    
+    # التفاصيل الإضافية
+    with st.expander("🔍 تحليل الفراهيدي العميق"):
+        if emotional:
+            st.markdown("**المشاعر والإحساس:**")
+            st.markdown(f'<div class="technical-box" style="font-family: Cairo; text-align: right; direction: rtl;">{emotional}</div>', unsafe_allow_html=True)
+        
+        if grammar:
+            st.markdown("**الملاحظات النحوية:**")
+            st.markdown(f'<div class="technical-box" style="font-family: Cairo; text-align: right; direction: rtl; color: {COLORS["warning_orange"]};">{grammar}</div>', unsafe_allow_html=True)
 
 def render_footer():
     st.markdown("""
     <div class="tam-footer">
-        جميع الحقوق محفوظة © 2026 منصة تام الثقافية
+        جميع الحقوق محفوظة © 2026 منصة تام الثقافية | الفراهيدي الذكي
     </div>
     """, unsafe_allow_html=True)
 
-def diacritics_tab():
-    """نافذة التشكيل والتدقيق اللغوي"""
-    st.markdown("### ✨ تشكيل وتدقيق القصيدة")
+# ═══ النوافذ الرئيسية ═══
+def diacritics_tab(engine: FarahidiGeminiEngine):
+    """نافذة التشكيل والتدقيق"""
+    st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
-    input_text = st.text_area(
-        "أدخل النص للتشكيل والتدقيق:",
-        height=200,
-        placeholder="أدخل أبيات القصيدة هنا للتشكيل والتدقيق الإملائي والنحوي...",
-        key="diacritics_input"
-    )
+    # حقل إدخال مفتاح Gemini
+    if not engine.is_configured:
+        with st.expander("🔑 إعداد مفتاح Gemini API"):
+            api_key = st.text_input("أدخل مفتاح Gemini API:", type="password")
+            if api_key:
+                st.session_state.gemini_api_key = api_key
+                st.rerun()
     
-    col1, col2, col3 = st.columns([1, 1, 1])
+    # عرض حالة الاتصال
+    if engine.is_configured:
+        st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 1.5 Flash)</div>', unsafe_allow_html=True)
+    else:
+        st.markdown('<div class="gemini-status gemini-disconnected">🔴 غير متصل - التحليل المحلي فعال</div>', unsafe_allow_html=True)
     
-    with col1:
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        process = st.button("✨ تشكيل وتدقيق", use_container_width=True, key="btn_diacritics")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
-        example = st.button("📋 مثال", use_container_width=True, key="btn_example_diac")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-        clear = st.button("🗑️ مسح", use_container_width=True, key="btn_clear_diac")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    if clear:
-        st.session_state.diacritics_input = ""
-        st.rerun()
-    
-    if example:
-        st.session_state.diacritics_input = "وحلف النصب يا ايتول هنا\nتوشي الليل والاحزان جهرا"
-        st.rerun()
-    
-    if process and input_text.strip():
-        with st.spinner("جاري التشكيل والتدقيق..."):
-            engine = DiacriticsEngine()
-            
-            # التشكيل
-            diacritized = engine.add_diacritics(input_text)
-            
-            # التدقيق الإملائي
-            spell_checked, spell_corrections = engine.spell_check(diacritized)
-            
-            # التدقيق النحوي
-            grammar_suggestions = engine.grammar_check(spell_checked)
-            
-            # عرض النتيجة
-            st.markdown("#### 📝 النص المشكل والمدقق:")
-            st.markdown(f'<div class="diacritics-box">{spell_checked}</div>', unsafe_allow_html=True)
-            
-            # زر النسخ
-            st.code(spell_checked, language="text")
-            
-            # التنبيهات
-            if spell_corrections or grammar_suggestions:
-                with st.expander("⚠️ ملاحظات التدقيق"):
-                    if spell_corrections:
-                        st.markdown("**التصحيحات الإملائية:**")
-                        for corr in spell_corrections:
-                            st.markdown(f"- {corr}")
-                    
-                    if grammar_suggestions:
-                        st.markdown("**الملاحظات النحوية:**")
-                        for sugg in grammar_suggestions:
-                            st.markdown(f"- {sugg}")
-            
-            st.info("💡 يمكنك نسخ النص المشكل أعلاه وإدخاله في نافذة التحليل العروضي")
-
-def analysis_tab():
-    """نافذة التحليل العروضي"""
-    
-    poem_input = st.text_area(
+    raw_input = st.text_area(
         "",
-        height=200,
-        placeholder="أدخل أبيات القصيدة المشكلة هنا...",
-        key="poem_input"
+        value=st.session_state.get('raw_text', ''),
+        height=150,
+        key="input_raw",
+        placeholder="اكتب النص هنا..."
     )
     
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        analyze = st.button("🔍 تحليل القصيدة", use_container_width=True, key="btn_analyze")
+        if st.button("✨ تشكيل وتحليل", use_container_width=True, key="btn_diacritics"):
+            if raw_input:
+                with st.spinner("جاري الاتصال بالفراهيدي الذكي..."):
+                    result = engine.analyze_poetry(raw_input)
+                    st.session_state.analysis_result = result
+                    st.session_state.final_text = result.get('diacritized_text', raw_input)
+                    st.session_state.raw_text = raw_input
+            else:
+                st.warning("أدخل نصاً أولاً.")
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col2:
-        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
-        example = st.button("📋 مثال", use_container_width=True, key="btn_example_anal")
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+        if st.button("📋 مثال", use_container_width=True, key="btn_example_diac"):
+            st.session_state.raw_text = "وحلف النصب يا ايتول هنا\nتوشي الليل والاحزان جهرا"
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
     with col3:
-        st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-        clear = st.button("🗑️ مسح", use_container_width=True, key="btn_clear_anal")
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+        if st.button("🗑️ مسح", use_container_width=True, key="btn_clear_diac"):
+            st.session_state.raw_text = ""
+            st.session_state.final_text = ""
+            st.session_state.analysis_result = None
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
     
-    if clear:
-        st.session_state.poem_input = ""
-        st.rerun()
+    # عرض النتيجة
+    if st.session_state.get('analysis_result'):
+        result = st.session_state.analysis_result
+        
+        st.markdown("### 📝 النص المشكل:")
+        st.markdown(f'<div class="diacritics-box">{result.get("diacritized_text", "")}</div>', unsafe_allow_html=True)
+        st.code(result.get("diacritized_text", ""), language="text")
+        
+        # عرض التحليل العروضي مباشرة
+        st.markdown("### 🎯 التحليل العروضي:")
+        render_result(result, 1)
+        
+        st.info("💡 يمكنك نسخ النص المشكل أو الانتقال لنافذة التحليل للتفاصيل الكاملة")
+
+def analysis_tab(engine: FarahidiGeminiEngine):
+    """نافذة التحليل العروضي المفصل"""
+    st.markdown('<div class="input-label">تحليل الوزن العروضي:</div>', unsafe_allow_html=True)
     
-    if example:
-        st.session_state.poem_input = "سَيَسْتَبْقِي الهِتَافُ إلَيْكَ دَهْرًا\nفَشَقَّ الدَّرْبَ بِالأَحْرَارِ نَصْرًا"
-        st.rerun()
+    text_to_analyze = st.text_area(
+        "",
+        value=st.session_state.get('final_text', ''),
+        height=150,
+        key="analysis_input",
+        placeholder="أدخل النص المشكل هنا..."
+    )
     
-    if analyze and poem_input.strip():
-        with st.spinner("جاري التحليل العروضي..."):
-            engine = SmartArudiEngine()
-            
-            syllables = engine.syllable_analysis(poem_input)
-            binary = engine.syllables_to_binary(syllables)
-            tafeelat = engine.extract_tafeelat(binary)
-            meter_name, meter_type, status = engine.identify_meter(tafeelat)
-            
-            result = AnalysisResult(
-                original_text=poem_input,
-                binary_code=binary,
-                tafeelat=tafeelat,
-                meter_name=meter_name,
-                meter_type=meter_type,
-                status=status,
-                break_count=0,
-                break_locations=[]
-            )
-            
-            render_result(result)
+    col1, col2, col3 = st.columns(3)
     
-    elif analyze and not poem_input.strip():
-        st.error("⚠️ الرجاء إدخال نص القصيدة أولاً")
+    with col1:
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+        if st.button("🔍 تحليل عميق", use_container_width=True, key="btn_analyze"):
+            if text_to_analyze.strip():
+                with st.spinner("جاري التحليل العميق بالفراهيدي..."):
+                    result = engine.analyze_poetry(text_to_analyze)
+                    st.session_state.deep_analysis = result
+            else:
+                st.error("⚠️ أدخل نصاً أولاً!")
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+        if st.button("📋 مثال", use_container_width=True, key="btn_example_anal"):
+            st.session_state.final_text = "سَيَسْتَبْقِي الهِتَافُ إلَيْكَ دَهْرًا\nفَشَقَّ الدَّرْبَ بِالأَحْرَارِ نَصْرًا"
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
+        if st.button("🗑️ مسح", use_container_width=True, key="btn_clear_anal"):
+            st.session_state.final_text = ""
+            st.session_state.deep_analysis = None
+            st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # عرض التحليل المخزن
+    if st.session_state.get('deep_analysis'):
+        render_result(st.session_state.deep_analysis, 1)
+    elif st.session_state.get('analysis_result'):
+        st.info("استخدم التحليل من نافذة التشكيل أعلاه، أو أدخل نصاً جديداً للتحليل العميق")
 
 def main():
     render_logo()
     
-    # إنشاء التبويبات
-    tab1, tab2 = st.tabs(["✨ تشكيل وتدقيق", "🔍 تحليل عروضي"])
+    # تهيئة session state
+    if 'raw_text' not in st.session_state:
+        st.session_state.raw_text = ""
+    if 'final_text' not in st.session_state:
+        st.session_state.final_text = ""
+    if 'gemini_api_key' not in st.session_state:
+        st.session_state.gemini_api_key = ""
+    
+    # تهيئة محرك الفراهيدي
+    engine = FarahidiGeminiEngine(st.session_state.gemini_api_key)
+    
+    # التبويبات
+    tab1, tab2 = st.tabs(["✍️ المُشكّل الآلي", "🔍 المحلل العروضي"])
     
     with tab1:
-        diacritics_tab()
+        diacritics_tab(engine)
     
     with tab2:
-        analysis_tab()
+        analysis_tab(engine)
     
     render_footer()
 
