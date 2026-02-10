@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-منصة تام الثقافية الذكية - الفراهيدي الذكي المتقدم
+منصة تام الثقافية الذكية - الفراهيدي الذكي 
 TAM Smart Cultural Platform - Advanced Al-Farahidi
 """
 
@@ -860,11 +860,11 @@ def render_logo():
     st.markdown("""
     <div class="tam-logo-container">
         <div class="tam-musnad" dir="ltr">𐩩𐩱𐩣</div>
-        <div class="tam-english" dir="ltr">TAM PLATFORM</div>
+        <div class="tam-english" dir="ltr">TAM</div>
         <div class="tam-arabic">تام</div>
         <div class="tam-separator"></div>
         <div class="tam-platform-name">منصة تام الثقافية الذكية</div>
-        <div class="farahidi-title"><span>🧠</span> الفراهيدي الذكي المتقدم</div>
+        <div class="farahidi-title"><span>🧠</span> الفراهيدي الذكي </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -1068,60 +1068,4 @@ def analysis_tab():
     with col1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         analyze = st.button("🔍 تحليل القصيدة", use_container_width=True, key="btn_analyze", type="primary")
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col2:
-        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
-        if st.button("📋 مثال", use_container_width=True, key="btn_example_anal"):
-            st.session_state.final_text = "سَيَسْتَبْقِي الهِتَافُ إلَيْكَ دَهْرًا\nفَشَقَّ الدَّرْبَ بِالأَحْرَارِ نَصْرًا"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
-        st.markdown('<div class="btn-danger">', unsafe_allow_html=True)
-        if st.button("🗑️ مسح", use_container_width=True, key="btn_clear_anal"):
-            st.session_state.final_text = ""
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    if analyze:
-        if not text_to_analyze.strip():
-            st.error("⚠️ الرجاء إدخال نص وتشكيله في النافذة الأولى أولاً!")
-        else:
-            analyzer = FarahidiAnalyzer()
-            
-            # تقسيم النص إلى أبيات
-            lines = [s.strip() for s in re.split(r'[\n]', text_to_analyze) if s.strip()]
-            previous_lines = []
-            
-            for idx, line in enumerate(lines):
-                # تقسيم البيت إلى شطرين إذا وجد علامة تقسيم
-                shatrs = re.split(r'[،,]', line)
-                
-                for shatr_idx, shatr in enumerate(shatrs):
-                    if shatr.strip():
-                        res = analyzer.analyze(shatr.strip(), previous_lines)
-                        render_result(res, idx + 1)
-                        previous_lines.append(shatr.strip())
-                        st.divider()
-
-def main():
-    render_logo()
-    
-    if 'raw_text' not in st.session_state:
-        st.session_state.raw_text = ""
-    if 'final_text' not in st.session_state:
-        st.session_state.final_text = ""
-    
-    tab1, tab2 = st.tabs(["✍️ المُشكّل الآلي", "🔍 المحلل العروضي المتقدم"])
-    
-    with tab1:
-        diacritics_tab()
-    
-    with tab2:
-        analysis_tab()
-    
-    render_footer()
-
-if __name__ == "__main__":
-    main()
+        st.markdown('</div>', unsafe_allow_html=
