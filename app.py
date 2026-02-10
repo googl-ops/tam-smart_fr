@@ -4,7 +4,7 @@
 """
 منصة تام الثقافية الذكية - الفراهيدي الذكي
 TAM Smart Cultural Platform - Al-Farahidi Smart
-Powered by Gemini 2.0 Flash
+Powered by Gemini 1.5 Flash
 """
 
 import subprocess
@@ -636,7 +636,7 @@ FARAHEEDI_SYSTEM_PROMPT = """
 
 # ═══ محرك Gemini الفراهيدي ═══
 class FarahidiGeminiEngine:
-    """محرك الفراهيدي الذكي باستخدام Gemini 2.0 Flash"""
+    """محرك الفراهيدي الذكي باستخدام Gemini 1.5 Flash"""
     
     def __init__(self, api_key: str = None):
         self.api_key = api_key
@@ -646,13 +646,13 @@ class FarahidiGeminiEngine:
         if GEMINI_AVAILABLE and api_key:
             try:
                 genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-2.0-flash')
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
                 self.is_configured = True
             except Exception as e:
                 st.error(f"خطأ في إعداد Gemini: {str(e)}")
     
     def analyze_poetry(self, text: str) -> Dict:
-        """تحليل الشعر باستخدام الفراهيدي (Gemini 2.0 Flash)"""
+        """تحليل الشعر باستخدام الفراهيدي (Gemini 1.5 Flash)"""
         if not self.is_configured or not self.model:
             return self._fallback_analysis(text)
         
@@ -674,7 +674,7 @@ class FarahidiGeminiEngine:
                 result_text = result_text.split("```")[1].split("```")[0]
             
             result = json.loads(result_text.strip())
-            result['source'] = 'Gemini 2.0 Flash'
+            result['source'] = 'Gemini 1.5 Flash'
             return result
             
         except Exception as e:
@@ -966,7 +966,7 @@ api_key = "your-gemini-api-key-here"'''
             st.code(secrets_code_local, language="toml")
     
     if engine.is_configured:
-        st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 2.0 Flash)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 1.5 Flash)</div>', unsafe_allow_html=True)
     else:
         st.markdown('<div class="gemini-status gemini-disconnected">🔴 غير متصل - التحليل المحلي فعال</div>', unsafe_allow_html=True)
     
