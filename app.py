@@ -9,6 +9,8 @@ Powered by Gemini 1.5 Flash
 
 import subprocess
 import sys
+import base64
+import os
 
 def install_packages():
     packages = ['streamlit', 'requests', 'google-generativeai']
@@ -30,22 +32,10 @@ from enum import Enum
 
 # ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
 def get_gemini_api_key():
-    """
-    استدعاء مفتاح Gemini API من Streamlit Secrets
-    يجب إضافة المفتاح في:
-    1. لوحة تحكم Streamlit Cloud ← App Settings ← Secrets
-    2. أو ملف .streamlit/secrets.toml محلياً
-    
-    الصيغة:
-    [gemini]
-    api_key = "your-api-key-here"
-    """
     try:
-        # محاولة استدعاء المفتاح من Secrets
         api_key = st.secrets["gemini"]["api_key"]
         return api_key
     except Exception as e:
-        # إذا فشل، نتحقق من session_state (للإدخال اليدوي)
         if 'gemini_api_key' in st.session_state and st.session_state.gemini_api_key:
             return st.session_state.gemini_api_key
         return None
@@ -57,23 +47,43 @@ try:
 except:
     GEMINI_AVAILABLE = False
 
+# ═══ قراءة الصورة وتحويلها إلى Base64 ═══
+def get_logo_base64():
+    try:
+        logo_path = "logo.jpg"
+        if os.path.exists(logo_path):
+            with open(logo_path, "rb") as image_file:
+                return base64.b64encode(image_file.read()).decode()
+        return None
+    except:
+        return None
+
+logo_base64 = get_logo_base64()
+
 st.set_page_config(
-    page_title="مختبر الفراهيدي الذكي | منصة تام",
-    page_icon="𐩩",
+    page_title="الفراهيدي الذكي | تام",
+    page_icon="🧠",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
 # ═══ إعداد أيقونة التطبيق للشاشة الرئيسية والمشاركة ═══
-st.markdown("""
-<link rel="apple-touch-icon" sizes="180x180" href="logo.jpg">
-<link rel="icon" type="image/jpeg" sizes="32x32" href="logo.jpg">
-<link rel="icon" type="image/jpeg" sizes="16x16" href="logo.jpg">
-<link rel="shortcut icon" href="logo.jpg">
-<meta name="apple-mobile-web-app-title" content="الفراهيدي الذكي">
-<meta name="application-name" content="الفراهيدي الذكي">
-<meta name="theme-color" content="#071A2F">
-""", unsafe_allow_html=True)
+if logo_base64:
+    st.markdown(f"""
+    <link rel="apple-touch-icon" sizes="180x180" href="data:image/jpeg;base64,{logo_base64}">
+    <link rel="icon" type="image/jpeg" sizes="32x32" href="data:image/jpeg;base64,{logo_base64}">
+    <link rel="icon" type="image/jpeg" sizes="16x16" href="data:image/jpeg;base64,{logo_base64}">
+    <link rel="shortcut icon" href="data:image/jpeg;base64,{logo_base64}">
+    <meta name="apple-mobile-web-app-title" content="الفراهيدي الذكي">
+    <meta name="application-name" content="الفراهيدي الذكي">
+    <meta name="theme-color" content="#071A2F">
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+    <meta name="apple-mobile-web-app-title" content="الفراهيدي الذكي">
+    <meta name="application-name" content="الفراهيدي الذكي">
+    <meta name="theme-color" content="#071A2F">
+    """, unsafe_allow_html=True)
 
 # ═══ الألوان والتصميم ═══
 COLORS = {
@@ -211,7 +221,7 @@ st.markdown(f"""
     .stTextArea > div > div {{ background: transparent !important; }}
     
     .stButton > button {{
-        font-family: 'Noto Kufi Arabic', sans-serif !important; font-weight: 700 !important;
+        font-family: 'Noto Kufي Arabic', sans-serif !important; font-weight: 700 !important;
         font-size: 1.1rem !important; border-radius: 50px !important;
         padding: 1rem 2.5rem !important; border: none !important;
         cursor: pointer !important;
@@ -250,7 +260,7 @@ st.markdown(f"""
     .tafeela-card.cyan {{ border-color: {COLORS['cyan']}; }}
     
     .tafeela-name {{
-        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-family: 'Noto Kufي Arabic', sans-serif;
         font-size: 1.8rem; font-weight: bold;
         color: {COLORS['electric_turquoise']}; margin-bottom: 0.5rem;
     }}
@@ -263,7 +273,7 @@ st.markdown(f"""
     
     .status-message {{
         padding: 1.5rem; border-radius: 15px; margin: 1rem 0;
-        font-family: 'Noto Kufi Arabic', sans-serif; text-align: center;
+        font-family: 'Noto Kufي Arabic', sans-serif; text-align: center;
     }}
     
     .status-message.success {{
@@ -342,7 +352,7 @@ st.markdown(f"""
         padding: 0.5rem 1.5rem;
         border-radius: 25px;
         font-weight: bold;
-        font-family: 'Noto Kufi Arabic';
+        font-family: 'Noto Kufي Arabic';
         margin: 0.5rem;
     }}
     
@@ -372,7 +382,7 @@ st.markdown(f"""
         background-color: transparent;
         border-radius: 10px;
         color: {COLORS['sandstone_cream']};
-        font-family: 'Noto Kufi Arabic';
+        font-family: 'Noto Kufي Arabic';
     }}
     
     .stTabs [aria-selected="true"] {{
@@ -400,47 +410,12 @@ st.markdown(f"""
     }}
     
     .input-label {{
-        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-family: 'Noto Kufي Arabic', sans-serif;
         font-size: 1.1rem;
         color: {COLORS['sandstone_cream']};
         text-align: center;
         margin-bottom: 10px;
         opacity: 0.9;
-    }}
-    
-    .gemini-status {{
-        padding: 0.5rem 1rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        margin-top: 1rem;
-    }}
-    
-    .gemini-connected {{
-        background: rgba(46, 213, 115, 0.2);
-        border: 1px solid {COLORS['success_green']};
-        color: {COLORS['success_green']};
-    }}
-    
-    .gemini-disconnected {{
-        background: rgba(255, 71, 87, 0.2);
-        border: 1px solid {COLORS['error_red']};
-        color: {COLORS['error_red']};
-    }}
-    
-    .secrets-info {{
-        background: rgba(0, 212, 200, 0.1);
-        border: 1px dashed {COLORS['electric_turquoise']};
-        border-radius: 10px;
-        padding: 1rem;
-        margin: 1rem 0;
-        font-family: 'Courier New', monospace;
-        font-size: 0.9rem;
-        color: {COLORS['electric_turquoise']};
-        direction: ltr;
-        text-align: left;
     }}
     
     /* ═══ تصميم قسم الترحيب والفيسبوك ═══ */
@@ -467,7 +442,7 @@ st.markdown(f"""
     }}
     
     .welcome-text {{
-        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-family: 'Noto Kufي Arabic', sans-serif;
         font-size: 1.3rem;
         color: {COLORS['sandstone_cream']};
         line-height: 2;
@@ -493,7 +468,7 @@ st.markdown(f"""
         gap: 12px;
         background: linear-gradient(135deg, #1877F2 0%, #166fe5 50%, #1256c4 100%);
         color: white !important;
-        font-family: 'Noto Kufi Arabic', sans-serif;
+        font-family: 'Noto Kufي Arabic', sans-serif;
         font-size: 1.2rem;
         font-weight: bold;
         padding: 1rem 2.5rem;
@@ -646,7 +621,8 @@ class FarahidiGeminiEngine:
         if GEMINI_AVAILABLE and api_key:
             try:
                 genai.configure(api_key=api_key)
-                self.model = genai.GenerativeModel('gemini-1.5-flash')
+                # استخدام الاسم الصحيح للنموذج
+                self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
                 self.is_configured = True
             except Exception as e:
                 st.error(f"خطأ في إعداد Gemini: {str(e)}")
@@ -941,10 +917,8 @@ def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
     """نافذة التشكيل والتدقيق"""
     st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
-    # عرض حالة الاتصال بالSecrets
-    if secrets_working:
-        st.markdown('<div class="gemini-status gemini-connected">🔐 المفتاح السري محمل تلقائياً من Streamlit Secrets</div>', unsafe_allow_html=True)
-    else:
+    # عرض حالة الاتصال بالSecrets فقط إذا لم يكن هناك مفتاح
+    if not secrets_working:
         st.warning("⚠️ لم يتم العثور على مفتاح Gemini في Secrets. سيتم استخدام التحليل المحلي.")
         with st.expander("🔑 كيفية إضافة المفتاح السري"):
             st.markdown("""
@@ -964,11 +938,6 @@ api_key = "your-gemini-api-key-here"'''
 [gemini]
 api_key = "your-gemini-api-key-here"'''
             st.code(secrets_code_local, language="toml")
-    
-    if engine.is_configured:
-        st.markdown('<div class="gemini-status gemini-connected">🟢 متصل بالفراهيدي الذكي (Gemini 1.5 Flash)</div>', unsafe_allow_html=True)
-    else:
-        st.markdown('<div class="gemini-status gemini-disconnected">🔴 غير متصل - التحليل المحلي فعال</div>', unsafe_allow_html=True)
     
     raw_input = st.text_area(
         "",
