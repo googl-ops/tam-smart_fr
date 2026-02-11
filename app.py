@@ -4,7 +4,7 @@
 """
 منصة تام الثقافية الذكية - الفراهيدي الذكي
 TAM Smart Cultural Platform - Al-Farahidi Smart
-Powered by Google GenAI (Gemini 3 Pro Preview)
+Powered by Gemini 1.5 Flash
 """
 
 import subprocess
@@ -13,13 +13,21 @@ import base64
 import os
 
 def install_packages():
-    # ✅ استخدام المكتبة الجديدة google-genai بدلاً من القديمة المهملة
-    packages = ['streamlit', 'requests', 'google-genai']
-    for package in packages:
+    # Install required packages
+    packages = [
+        ('streamlit', 'streamlit'),
+        ('requests', 'requests'),
+        ('google-generativeai', 'google.generativeai') 
+    ]
+    
+    for package_name, import_name in packages:
         try:
-            __import__(package.replace('-', '_'))
+            if package_name == 'google-generativeai':
+                import google.generativeai
+            else:
+                __import__(import_name)
         except ImportError:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", package])
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", package_name])
 
 install_packages()
 
@@ -31,7 +39,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 from enum import Enum
 
-# ═══ استدعاء المفتاح السري من Streamlit Secrets أو البيئة ═══
+# ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
 def get_gemini_api_key():
     """استرجاع مفتاح Gemini API من متغيرات البيئة أو Streamlit Secrets"""
     try:
@@ -72,9 +80,9 @@ def get_gemini_api_key():
     
     return None
 
-# ═══ إعداد Gemini (المكتبة الجديدة) ═══
+# إعداد Gemini
 try:
-    from google import genai
+    import google.generativeai as genai
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
@@ -117,7 +125,7 @@ else:
     <meta name="theme-color" content="#071A2F">
     """, unsafe_allow_html=True)
 
-# ═══ الألوان والتصميم (كما هي تماماً) ═══
+# ═══ الألوان والتصميم ═══
 COLORS = {
     'midnight_blue': '#071A2F',
     'aged_gold': '#C8A44D',
@@ -253,7 +261,7 @@ st.markdown(f"""
     .stTextArea > div > div {{ background: transparent !important; }}
     
     .stButton > button {{
-        font-family: 'Noto Kufي Arabic', sans-serif !important; font-weight: 700 !important;
+        font-family: 'Noto Kufi Arabic', sans-serif !important; font-weight: 700 !important;
         font-size: 1.1rem !important; border-radius: 50px !important;
         padding: 1rem 2.5rem !important; border: none !important;
         cursor: pointer !important;
@@ -292,7 +300,7 @@ st.markdown(f"""
     .tafeela-card.cyan {{ border-color: {COLORS['cyan']}; }}
     
     .tafeela-name {{
-        font-family: 'Noto Kufي Arabic', sans-serif;
+        font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.8rem; font-weight: bold;
         color: {COLORS['electric_turquoise']}; margin-bottom: 0.5rem;
     }}
@@ -305,7 +313,7 @@ st.markdown(f"""
     
     .status-message {{
         padding: 1.5rem; border-radius: 15px; margin: 1rem 0;
-        font-family: 'Noto Kufي Arabic', sans-serif; text-align: center;
+        font-family: 'Noto Kufi Arabic', sans-serif; text-align: center;
     }}
     
     .status-message.success {{
@@ -384,7 +392,7 @@ st.markdown(f"""
         padding: 0.5rem 1.5rem;
         border-radius: 25px;
         font-weight: bold;
-        font-family: 'Noto Kufي Arabic';
+        font-family: 'Noto Kufi Arabic';
         margin: 0.5rem;
     }}
     
@@ -414,7 +422,7 @@ st.markdown(f"""
         background-color: transparent;
         border-radius: 10px;
         color: {COLORS['sandstone_cream']};
-        font-family: 'Noto Kufي Arabic';
+        font-family: 'Noto Kufi Arabic';
     }}
     
     .stTabs [aria-selected="true"] {{
@@ -442,7 +450,7 @@ st.markdown(f"""
     }}
     
     .input-label {{
-        font-family: 'Noto Kufي Arabic', sans-serif;
+        font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.1rem;
         color: {COLORS['sandstone_cream']};
         text-align: center;
@@ -474,7 +482,7 @@ st.markdown(f"""
     }}
     
     .welcome-text {{
-        font-family: 'Noto Kufي Arabic', sans-serif;
+        font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.3rem;
         color: {COLORS['sandstone_cream']};
         line-height: 2;
@@ -500,7 +508,7 @@ st.markdown(f"""
         gap: 12px;
         background: linear-gradient(135deg, #1877F2 0%, #166fe5 50%, #1256c4 100%);
         color: white !important;
-        font-family: 'Noto Kufي Arabic', sans-serif;
+        font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.2rem;
         font-weight: bold;
         padding: 1rem 2.5rem;
@@ -556,7 +564,7 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# ═══ أنواع البحور (كما هي) ═══
+# ═══ أنواع البحور ═══
 class MeterType(Enum):
     TAM = "تام"
     MAJZOO = "مجزوء"
@@ -641,40 +649,40 @@ FARAHEEDI_SYSTEM_PROMPT = """
 }
 """
 
-# ═══ محرك الفراهيدي الذكي (باستخدام المكتبة الجديدة) ═══
+# ═══ محرك Gemini الفراهيدي ═══
 class FarahidiGeminiEngine:
-    """محرك الفراهيدي الذكي باستخدام Gemini 3 Pro Preview (المكتبة الجديدة)"""
+    """محرك الفراهيدي الذكي باستخدام Gemini 1.5 Flash"""
     
     def __init__(self, api_key: str = None):
         self.api_key = api_key
-        self.client = None
+        self.model = None
         self.is_configured = False
-        # اسم النموذج المجاني والعامل حالياً (فبراير 2026)
-        self.model_name = "gemini-3-pro-preview-11-2025"
         
         if GEMINI_AVAILABLE and api_key:
             try:
-                # ✅ تهيئة العميل بالمكتبة الجديدة
-                self.client = genai.Client(api_key=api_key)
+                genai.configure(api_key=api_key)
+                # استخدام Gemini 1.5 Flash
+                self.model = genai.GenerativeModel('gemini-1.5-flash')
                 self.is_configured = True
             except Exception as e:
                 st.error(f"خطأ في إعداد Gemini: {str(e)}")
     
     def analyze_poetry(self, text: str) -> Dict:
-        """تحليل الشعر باستخدام الفراهيدي (Gemini 3 Pro Preview)"""
-        if not self.is_configured or not self.client:
+        """تحليل الشعر باستخدام الفراهيدي (Gemini 1.5 Flash)"""
+        if not self.is_configured or not self.model:
             return self._fallback_analysis(text)
         
         try:
             prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
             
-            # ✅ استخدام طريقة generate_content الجديدة
-            response = self.client.models.generate_content(
-                model=self.model_name,
-                contents=prompt
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    temperature=0.1,
+                    max_output_tokens=2048,
+                )
             )
             
-            # ✅ استخراج النص من الاستجابة
             result_text = response.text
             if "```json" in result_text:
                 result_text = result_text.split("```json")[1].split("```")[0]
@@ -682,31 +690,116 @@ class FarahidiGeminiEngine:
                 result_text = result_text.split("```")[1].split("```")[0]
             
             result = json.loads(result_text.strip())
-            result['source'] = 'Gemini 3 Pro Preview (Free)'
+            result['source'] = 'Gemini 1.5 Flash'
             return result
             
         except Exception as e:
-            st.warning(f"تعذر الاتصال بالفراهيدي الذكي: {str(e)}")
+            st.warning(f"تعذر الاتصال بالفراهيدي الذكي، سيتم استخدام التحليل المحلي: {str(e)}")
             return self._fallback_analysis(text)
     
     def _fallback_analysis(self, text: str) -> Dict:
-        """تحليل بديل بسيط عند فشل Gemini (بدون محرك محلي)"""
+        """تحليل بديل محلي عند فشل Gemini"""
         return {
             "diacritized_text": text,
-            "meter_name": "غير متاح (تحقق من الاتصال)",
+            "meter_name": "غير محدد (تحليل محلي)",
             "meter_type": "غير معروف",
             "tafeelat": [],
             "qafiya_type": "غير محدد",
             "rawwiy": "",
-            "emotional_analysis": "الفراهيدي الذكي غير متصل حالياً. يرجى التحقق من مفتاح API واتصال الإنترنت.",
+            "emotional_analysis": "يتطلب الاتصال بالفراهيدي الذكي",
             "grammar_notes": "",
             "is_single_tafeela": False,
-            "source": "غير متصل"
+            "source": "تحليل محلي"
         }
 
-# ═══ (تم حذف المحرك العروضي المحلي بناءً على طلب المستخدم) ═══
+# ═══ المحرك العروضي المحلي (احتياطي) ═══
+class ArabicTextEngine:
+    """المحرك العروضي المحلي الاحتياطي"""
+    
+    ARABIC_LETTERS = set('ابتثجحخدذرزسشصضطظعغفقكلمنهويى')
+    HARAKAT = set('ًٌٍَُِّْ')
+    SOLAR_LETTERS = set('تثدذرزسشصضطظلن')
 
-# ═══ دوال العرض (كما هي تماماً) ═══
+    @classmethod
+    def smart_tokenize(cls, text: str) -> List[Dict]:
+        text = cls._normalize_text(text)
+        tokens = []
+        i = 0
+        length = len(text)
+        
+        while i < length:
+            char = text[i]
+            if char in ' \n':
+                i += 1
+                continue
+            if char not in cls.ARABIC_LETTERS:
+                i += 1
+                continue
+            
+            next_char = text[i+1] if i+1 < length else None
+            
+            if char == 'ا' and next_char == 'ل':
+                after_lam = text[i+2] if i+2 < length else None
+                if after_lam and after_lam in cls.SOLAR_LETTERS:
+                    tokens.append({'letter': 'ا', 'haraka': {'type': 'mutaharrik', 'symbol': 'َ'}})
+                    i += 2
+                    continue
+                else:
+                    tokens.append({'letter': 'ا', 'haraka': {'type': 'mutaharrik', 'symbol': 'َ'}})
+                    tokens.append({'letter': 'ل', 'haraka': {'type': 'sakin', 'symbol': 'ْ'}})
+                    i += 2
+                    continue
+
+            if next_char in cls.HARAKAT:
+                if next_char == 'ّ':
+                    tokens.append({'letter': char, 'haraka': {'type': 'sakin', 'symbol': 'ْ'}})
+                    tokens.append({'letter': char, 'haraka': {'type': 'mutaharrik', 'symbol': 'َ'}})
+                    i += 2
+                elif next_char == 'ْ':
+                    tokens.append({'letter': char, 'haraka': {'type': 'sakin', 'symbol': 'ْ'}})
+                    i += 2
+                else:
+                    tokens.append({'letter': char, 'haraka': {'type': 'mutaharrik', 'symbol': next_char}})
+                    i += 2
+                continue
+
+            haraka = cls._infer_vowel(char, i, text)
+            tokens.append({'letter': char, 'haraka': haraka})
+            i += 1
+            
+        return tokens
+    
+    @classmethod
+    def _normalize_text(cls, text: str) -> str:
+        if not text: 
+            return ""
+        text = text.replace('\u0640', '')
+        hamza_map = {'أ': 'ا', 'إ': 'ا', 'آ': 'ا', 'ٱ': 'ا', 'ؤ': 'و', 'ئ': 'ي', 'ء': ''}
+        for old, new in hamza_map.items():
+            text = text.replace(old, new)
+        text = text.replace('ة', 'ه')
+        return text
+    
+    @classmethod
+    def _infer_vowel(cls, char: str, position: int, text: str) -> Dict:
+        if position == len(text) - 1 or (position + 1 < len(text) and text[position + 1] == ' '):
+            if char in 'دذرزسوي':
+                return {'type': 'sakin', 'symbol': 'ْ', 'source': 'rule_waqf'}
+        
+        if char == 'ي': 
+            return {'type': 'mutaharrik', 'symbol': 'ِ', 'source': 'rule_ya'}
+        elif char == 'و': 
+            return {'type': 'mutaharrik', 'symbol': 'ُ', 'source': 'rule_waw'}
+        elif char == 'ا': 
+            return {'type': 'sakin', 'symbol': 'ْ', 'source': 'rule_alif'}
+        
+        return {'type': 'mutaharrik', 'symbol': 'َ', 'source': 'default'}
+
+    @classmethod
+    def tokens_to_binary(cls, tokens: List[Dict]) -> str:
+        return ''.join('1' if t['haraka']['type'] == 'mutaharrik' else '0' for t in tokens)
+
+# ═══ دوال العرض ═══
 def render_logo():
     st.markdown("""
     <div class="tam-logo-container">
@@ -740,7 +833,7 @@ def get_meter_badge_class(meter_type: MeterType) -> str:
     return badge_map.get(meter_type, 'badge-tam')
 
 def render_result(result: Dict, shatr_num: int = 1):
-    """عرض نتائج التحليل (بدون تغيير)"""
+    """عرض نتائج التحليل"""
     
     meter_name = result.get('meter_name', 'غير محدد')
     meter_type_str = result.get('meter_type', 'غير معروف')
@@ -779,7 +872,7 @@ def render_result(result: Dict, shatr_num: int = 1):
         </div>""", unsafe_allow_html=True)
     
     with col3:
-        confidence = 98 if "Gemini" in str(source) else 30
+        confidence = 98 if "Gemini" in str(source) else 60
         color = "#4CAF50" if confidence > 80 else "#ffa502"
         st.markdown(f"""
         <div class="result-card" style="border-right-color: {color}">
@@ -864,8 +957,9 @@ def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
     """نافذة التشكيل والتدقيق"""
     st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
+    # عرض حالة الاتصال بالSecrets فقط إذا لم يكن هناك مفتاح
     if not secrets_working:
-        st.warning("⚠️ لم يتم العثور على مفتاح Gemini API. سيتم استخدام التحليل المحلي (غير متصل).")
+        st.warning("⚠️ لم يتم العثور على مفتاح Gemini API في Secrets. سيتم استخدام التحليل المحلي.")
         with st.expander("🔑 كيفية إضافة المفتاح السري"):
             st.markdown("""
             **لإضافة المفتاح في Streamlit Cloud:**
@@ -906,6 +1000,7 @@ Gemini_API_Key = "your-gemini-api-key-here"'''
                     st.session_state.analysis_result = result
                     st.session_state.final_text = result.get('diacritized_text', raw_input)
                     st.session_state.raw_text = raw_input
+                    st.rerun()
             else:
                 st.warning("أدخل نصاً أولاً.")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -959,6 +1054,7 @@ def analysis_tab(engine: FarahidiGeminiEngine):
                 with st.spinner("جاري التحليل العميق بالفراهيدي..."):
                     result = engine.analyze_poetry(text_to_analyze)
                     st.session_state.deep_analysis = result
+                    st.rerun()
             else:
                 st.error("⚠️ أدخل نصاً أولاً!")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -993,11 +1089,11 @@ def main():
     if 'final_text' not in st.session_state:
         st.session_state.final_text = ""
     
-    # ═══ استدعاء المفتاح السري ═══
+    # ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
     api_key = get_gemini_api_key()
     secrets_working = api_key is not None
     
-    # ═══ إعداد محرك الفراهيدي (بالمكتبة الجديدة) ═══
+    # ═══ إعداد محرك الفراهيدي بالمفتاح (سواء من Secrets أو None) ═══
     engine = FarahidiGeminiEngine(api_key)
     
     # ═══ عرض تحذير إذا لم يتم العثور على مفتاح ═══
@@ -1005,8 +1101,8 @@ def main():
         st.markdown("""
         <div class="status-message warning">
             ⚠️ <strong>انتباه:</strong> لم يتم العثور على مفتاح Gemini API.<br>
-            التطبيق سيعمل ولكن دون اتصال بالفراهيدي الذكي.<br>
-            راجع قسم "كيفية إضافة المفتاح السري" لإضافة المفتاح.
+            التطبيق سيعمل ولكن بتحليل محدود (بدون اتصال بالفراهيدي الذكي).<br>
+            راجع قسم "كيفية إضافة المفتاح السري" أدناه لإضافة المفتاح.
         </div>
         """, unsafe_allow_html=True)
     
