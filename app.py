@@ -32,13 +32,44 @@ from enum import Enum
 
 # ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
 def get_gemini_api_key():
+    """استرجاع مفتاح Gemini API من متغيرات البيئة أو Streamlit Secrets"""
     try:
-        api_key = st.secrets["gemini"]["api_key"]
-        return api_key
-    except Exception as e:
-        if 'gemini_api_key' in st.session_state and st.session_state.gemini_api_key:
-            return st.session_state.gemini_api_key
-        return None
+        # المحاولة الأولى: من متغيرات البيئة
+        api_key = os.environ.get("Gemini_API_Key")
+        if api_key and api_key.strip() != "":
+            return api_key.strip()
+    except:
+        pass
+    
+    try:
+        # المحاولة الثانية: من Streamlit Secrets (اسم المفتاح الحالي)
+        api_key = st.secrets.get("Gemini_API_Key")
+        if api_key and api_key.strip() != "":
+            return api_key.strip()
+    except:
+        pass
+    
+    try:
+        # المحاولة الثالثة: من Streamlit Secrets (باسم مختلف محتمل)
+        api_key = st.secrets.get("gemini_api_key")
+        if api_key and api_key.strip() != "":
+            return api_key.strip()
+    except:
+        pass
+    
+    try:
+        # المحاولة الرابعة: من Streamlit Secrets (هيكل gemini)
+        api_key = st.secrets.get("gemini", {}).get("api_key")
+        if api_key and api_key.strip() != "":
+            return api_key.strip()
+    except:
+        pass
+    
+    # المحاولة الخامسة: من session state
+    if 'Gemini_API_Key' in st.session_state and st.session_state.Gemini_API_Key:
+        return st.session_state.Gemini_API_Key.strip()
+    
+    return None
 
 # إعداد Gemini
 try:
@@ -919,7 +950,7 @@ def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
     
     # عرض حالة الاتصال بالSecrets فقط إذا لم يكن هناك مفتاح
     if not secrets_working:
-        st.warning("⚠️ لم يتم العثور على مفتاح Gemini في Secrets. سيتم استخدام التحليل المحلي.")
+        st.warning("⚠️ لم يتم العثور على مفتاح Gemini API في Secrets. سيتم استخدام التحليل المحلي.")
         with st.expander("🔑 كيفية إضافة المفتاح السري"):
             st.markdown("""
             **لإضافة المفتاح في Streamlit Cloud:**
@@ -928,16 +959,18 @@ def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
             3. اختر **Secrets** (أسرار)
             4. أضف الكود التالي:
             """)
-            secrets_code_cloud = '''[gemini]
-api_key = "your-gemini-api-key-here"'''
+            secrets_code_cloud = '''Gemini_API_Key = "your-gemini-api-key-here"'''
             st.code(secrets_code_cloud, language="toml")
             st.markdown("""
             **أو محلياً في ملف `.streamlit/secrets.toml`:**
             """)
             secrets_code_local = '''# .streamlit/secrets.toml
-[gemini]
-api_key = "your-gemini-api-key-here"'''
+Gemini_API_Key = "your-gemini-api-key-here"'''
             st.code(secrets_code_local, language="toml")
+            st.markdown("""
+            **أو كمتغير بيئة في نظام التشغيل:**
+            """)
+            st.code('export Gemini_API_Key="your-gemini-api-key-here"', language="bash")
     
     raw_input = st.text_area(
         "",
@@ -1049,8 +1082,18 @@ def main():
     api_key = get_gemini_api_key()
     secrets_working = api_key is not None
     
-    # تهيئة محرك الفراهيدي بالمفتاح (سواء من Secrets أو None)
+    # ═══ إعداد محرك الفراهيدي بالمفتاح (سواء من Secrets أو None) ═══
     engine = FarahidiGeminiEngine(api_key)
+    
+    # ═══ عرض تحذير إذا لم يتم العثور على مفتاح ═══
+    if not secrets_working:
+        st.markdown("""
+        <div class="status-message warning">
+            ⚠️ <strong>انتباه:</strong> لم يتم العثور على مفتاح Gemini API.<br>
+            التطبيق سيعمل ولكن بتحليل محدود (بدون اتصال بالفراهيدي الذكي).<br>
+            راجع قسم "كيفية إضافة المفتاح السري" أدناه لإضافة المفتاح.
+        </div>
+        """, unsafe_allow_html=True)
     
     tab1, tab2 = st.tabs(["✍️ المُشكّل الآلي", "🔍 المحلل العروضي"])
     
