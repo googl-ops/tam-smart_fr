@@ -652,8 +652,11 @@ class FarahidiGeminiEngine:
         if GEMINI_AVAILABLE and api_key:
             try:
                 genai.configure(api_key=api_key)
-                # استخدام الاسم الصحيح للنموذج
-                self.model = genai.GenerativeModel('gemini-1.5-flash-latest')
+                # التصحيح: استخدام اسم النموذج الصحيح
+                # gemini-1.5-flash-latest غير موجود، استخدم واحداً من هذه:
+                self.model = genai.GenerativeModel('gemini-1.5-pro')  # ← الأفضل
+                # أو: self.model = genai.GenerativeModel('gemini-1.5-flash')
+                # أو: self.model = genai.GenerativeModel('gemini-pro')
                 self.is_configured = True
             except Exception as e:
                 st.error(f"خطأ في إعداد Gemini: {str(e)}")
@@ -681,7 +684,7 @@ class FarahidiGeminiEngine:
                 result_text = result_text.split("```")[1].split("```")[0]
             
             result = json.loads(result_text.strip())
-            result['source'] = 'Gemini 1.5 Flash'
+            result['source'] = 'Gemini 1.5 Pro'
             return result
             
         except Exception as e:
