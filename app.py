@@ -7,85 +7,55 @@ TAM Smart Cultural Platform - Al-Farahidi Smart
 Powered by Gemini 1.5 Flash
 """
 
-import subprocess
-import sys
 import base64
 import os
-
-def install_packages():
-    # Install required packages
-    packages = [
-        ('streamlit', 'streamlit'),
-        ('requests', 'requests'),
-        ('google-generativeai', 'google.generativeai') 
-    ]
-    
-    for package_name, import_name in packages:
-        try:
-            if package_name == 'google-generativeai':
-                import google.generativeai
-            else:
-                __import__(import_name)
-        except ImportError:
-            subprocess.check_call([sys.executable, "-m", "pip", "install", "-q", package_name])
-
-install_packages()
-
-import streamlit as st
-import requests
-import re
 import json
+import re
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from enum import Enum
 
-# ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
-def get_gemini_api_key():
-    """استرجاع مفتاح Gemini API من متغيرات البيئة أو Streamlit Secrets"""
-    try:
-        # المحاولة الأولى: من متغيرات البيئة
-        api_key = os.environ.get("Gemini_API_Key")
-        if api_key and api_key.strip() != "":
-            return api_key.strip()
-    except:
-        pass
-    
-    try:
-        # المحاولة الثانية: من Streamlit Secrets (اسم المفتاح الحالي)
-        api_key = st.secrets.get("Gemini_API_Key")
-        if api_key and api_key.strip() != "":
-            return api_key.strip()
-    except:
-        pass
-    
-    try:
-        # المحاولة الثالثة: من Streamlit Secrets (باسم مختلف محتمل)
-        api_key = st.secrets.get("gemini_api_key")
-        if api_key and api_key.strip() != "":
-            return api_key.strip()
-    except:
-        pass
-    
-    try:
-        # المحاولة الرابعة: من Streamlit Secrets (هيكل gemini)
-        api_key = st.secrets.get("gemini", {}).get("api_key")
-        if api_key and api_key.strip() != "":
-            return api_key.strip()
-    except:
-        pass
-    
-    # المحاولة الخامسة: من session state
-    if 'Gemini_API_Key' in st.session_state and st.session_state.Gemini_API_Key:
-        return st.session_state.Gemini_API_Key.strip()
-    
-    return None
+# ═══ استيراد المكتبات ═══
+import streamlit as st
 
-# إعداد Gemini
+# ═══ استيراد المكتبة الجديدة ═══
 try:
-    import google.generativeai as genai
+    from google import genai
+    from google.genai import types
     GEMINI_AVAILABLE = True
 except ImportError:
     GEMINI_AVAILABLE = False
+    genai = None
+    st.error("❌ مكتبة google-genai غير مثبتة. تأكد من requirements.txt")
+
+# ═══ استدعاء المفتاح السري ═══
+def get_gemini_api_key():
+    """استرجاع مفتاح Gemini API"""
+    # من Streamlit Secrets
+    try:
+        if 'Gemini_API_Key' in st.secrets:
+            return st.secrets['Gemini_API_Key']
+    except:
+        pass
+    
+    # من متغيرات البيئة
+    api_key = os.environ.get("Gemini_API_Key")
+    if api_key:
+        return api_key
+    
+    # من session state
+    if 'Gemini_API_Key' in st.session_state and st.session_state.Gemini_API_Key:
+        return st.session_state.Gemini_API_Key
+    
+    return None
+
+# ═══ إعداد الصفحة ═══
+st.set_page_config(
+    page_title="الفراهيدي الذكي | تام",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="collapsed"
+)
 
 # ═══ قراءة الصورة وتحويلها إلى Base64 ═══
 def get_logo_base64():
@@ -100,14 +70,7 @@ def get_logo_base64():
 
 logo_base64 = get_logo_base64()
 
-st.set_page_config(
-    page_title="الفراهيدي الذكي | تام",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-# ═══ إعداد أيقونة التطبيق للشاشة الرئيسية والمشاركة ═══
+# ═══ إعداد أيقونة التطبيق ═══
 if logo_base64:
     st.markdown(f"""
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/jpeg;base64,{logo_base64}">
@@ -137,9 +100,6 @@ COLORS = {
     'success_green': '#2ed573',
     'purple': '#9b59b6',
     'cyan': '#00cec9',
-    'facebook_blue': '#1877F2',
-    'gradient_gold': 'linear-gradient(180deg, #d4af37 0%, #C8A44D 50%, #b8941f 100%)',
-    'silver_gradient': 'linear-gradient(145deg, #E8E8E8 0%, #C0C0C0 30%, #A0A0A0 60%, #D0D0D0 100%)'
 }
 
 st.markdown(f"""
@@ -458,7 +418,6 @@ st.markdown(f"""
         opacity: 0.9;
     }}
     
-    /* ═══ تصميم قسم الترحيب والفيسبوك ═══ */
     .welcome-section {{
         background: linear-gradient(135deg, rgba(0, 212, 200, 0.1) 0%, rgba(200, 164, 77, 0.1) 100%);
         border: 1px solid {COLORS['electric_turquoise']}40;
@@ -474,10 +433,7 @@ st.markdown(f"""
     .welcome-section::before {{
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
+        top: 0; left: 0; right: 0; height: 3px;
         background: linear-gradient(to right, transparent, {COLORS['electric_turquoise']}, {COLORS['aged_gold']}, {COLORS['electric_turquoise']}, transparent);
     }}
     
@@ -649,41 +605,52 @@ FARAHEEDI_SYSTEM_PROMPT = """
 }
 """
 
-# ═══ محرك Gemini الفراهيدي ═══
+# ═══ محرك Gemini الفراهيدي (المحدث للمكتبة الجديدة) ═══
 class FarahidiGeminiEngine:
     """محرك الفراهيدي الذكي باستخدام Gemini 1.5 Flash"""
     
     def __init__(self, api_key: str = None):
         self.api_key = api_key
-        self.model = None
+        self.client = None
         self.is_configured = False
         
-        if GEMINI_AVAILABLE and api_key:
-            try:
-                genai.configure(api_key=api_key)
-                # استخدام Gemini 1.5 Flash
-                self.model = genai.GenerativeModel('gemini-1.5-flash')
-                self.is_configured = True
-            except Exception as e:
-                st.error(f"خطأ في إعداد Gemini: {str(e)}")
+        if not GEMINI_AVAILABLE:
+            st.error("❌ مكتبة google-genai غير متوفرة!")
+            return
+            
+        if not api_key:
+            st.warning("⚠️ لم يتم توفير مفتاح Gemini API!")
+            return
+            
+        try:
+            # ═══ التهيئة بالمكتبة الجديدة ═══
+            self.client = genai.Client(api_key=api_key)
+            self.is_configured = True
+            st.success("✅ تم الاتصال بنجاح بالفراهيدي الذكي (Gemini 1.5 Flash)")
+        except Exception as e:
+            st.error(f"❌ خطأ في إعداد Gemini: {str(e)}")
     
     def analyze_poetry(self, text: str) -> Dict:
         """تحليل الشعر باستخدام الفراهيدي (Gemini 1.5 Flash)"""
-        if not self.is_configured or not self.model:
+        if not self.is_configured or not self.client:
             return self._fallback_analysis(text)
         
         try:
             prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
             
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
+            # ═══ استخدام المكتبة الجديدة ═══
+            response = self.client.models.generate_content(
+                model="gemini-1.5-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(
                     temperature=0.1,
                     max_output_tokens=2048,
                 )
             )
             
             result_text = response.text
+            
+            # استخراج JSON من الرد
             if "```json" in result_text:
                 result_text = result_text.split("```json")[1].split("```")[0]
             elif "```" in result_text:
@@ -957,7 +924,6 @@ def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
     """نافذة التشكيل والتدقيق"""
     st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
-    # عرض حالة الاتصال بالSecrets فقط إذا لم يكن هناك مفتاح
     if not secrets_working:
         st.warning("⚠️ لم يتم العثور على مفتاح Gemini API في Secrets. سيتم استخدام التحليل المحلي.")
         with st.expander("🔑 كيفية إضافة المفتاح السري"):
@@ -1121,3 +1087,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
