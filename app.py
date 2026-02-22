@@ -1,57 +1,79 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import streamlit as st
-import requests
+import os
 
-st.set_page_config(page_title="تشخيص الاتصال", page_icon="🔧")
+st.title("🔍 تشخيص نهاري للمشكلة")
 
-st.title("🔧 تشخيص الاتصال بـ OpenRouter")
+# معلومات النظام
+st.subheader("معلومات النظام")
+st.write(f"Streamlit version: {st.__version__}")
+
+# محاولة استيراد المكتبة
+try:
+    from google import genai
+    st.success("✅ المكتبة google-genai مستوردة")
+    
+    # معلومات المكتبة
+    import google.genai as genai_module
+    st.write(f"إصدار المكتبة: {getattr(genai_module, '__version__', 'غير معروف')}")
+except Exception as e:
+    st.error(f"❌ فشل استيراد المكتبة: {e}")
 
 # قراءة المفتاح
+st.subheader("قراءة المفتاح")
 api_key = None
+
+# من Secrets
 try:
-    if 'OpenRouter_API_Key' in st.secrets:
-        api_key = st.secrets['OpenRouter_API_Key']
-        st.success(f"✅ وجدت المفتاح في Secrets!")
-        st.code(f"الطول: {len(api_key)} | البداية: {api_key[:20]}...")
+    api_key = st.secrets.get("Gemini_API_Key")
+    if api_key:
+        st.success(f"✅ المفتاح موجود في Secrets: {api_key[:15]}...")
+        st.write(f"طول المفتاح: {len(api_key)}")
     else:
         st.error("❌ المفتاح غير موجود في Secrets")
-        st.write("المفاتيح المتاحة:", list(st.secrets.keys()))
 except Exception as e:
-    st.error(f"❌ خطأ: {e}")
+    st.error(f"❌ خطأ في قراءة Secrets: {e}")
 
 # اختبار الاتصال
 if api_key:
-    st.markdown("---")
-    st.subheader("🧪 اختبار الاتصال")
-    
-    if st.button("🔌 اختبر الاتصال الآن"):
-        with st.spinner("جاري الاتصال..."):
-            try:
-                response = requests.post(
-                    "https://openrouter.ai/api/v1/chat/completions",
-                    headers={
-                        "Authorization": f"Bearer {api_key}",
-                        "Content-Type": "application/json",
-                    },
-                    json={
-                        "model": "qwen/qwen3-32b:free",
-                        "messages": [{"role": "user", "content": "Say hi"}],
-                        "max_tokens": 10
-                    },
-                    timeout=30
-                )
-                
-                st.write(f"**رمز الاستجابة:** {response.status_code}")
-                
-                if response.status_code == 200:
-                    st.success("✅ الاتصال ناجح!")
-                    st.json(response.json())
-                else:
-                    st.error(f"❌ فشل الاتصال: {response.status_code}")
-                    st.code(response.text)
-                    
-            except Exception as e:
-                st.error(f"❌ خطأ: {str(e)}")
-
+    st.subheader("اختبار الاتصال")
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        # اختبار بسيط
+        response = client.models.generate_content(
+            model="gemini-1.5-flash",
+            contents="قل: الاختبار ناجح",
+            config=genai.types.GenerateContentConfig(max_output_tokens=10)
+        )
+        
+        st.success(f"✅ الاتصال ناجح! الرد: {response.text}")
+        
+    except Exception as e:
+        st.error(f"❌ فشل الاتصال: {e}")
+        
+        # تحليل الخطأ
+        error_str = str(e)
+        if "API key not valid" in error_str:
+            st.info("""
+            🔴 **المفتاح غير صالح**
+            
+            **الحلول:**
+            1. تأكد أنك أنشأت المفتاح من: https://ai.google.dev/gemini-api/docs/api-key
+            2. تأكد من تفعيل الفوترة (Billing) في Google Cloud
+            3. تأكد من تفعيل Gemini API في مشروعك
+            4. جرب إنشاء مفتاح جديد في مشروع جديد
+            
+            **رابط Google Cloud Console:**
+            https://console.cloud.google.com/apis/library/generativelanguage.googleapis.com
+            """)
+        elif "403" in error_str:
+            st.info("""
+            🔴 **خطأ 403 - الوصول مرفوض**
+            
+            **الحل:**
+            - المفتاح صحيح لكن API غير مفعل للمشروع
+            - اذهب إلى Google Cloud Console → APIs & Services → Enable APIs
+            - فعّل "Generative Language API"
+            """)
+        else:
+            st.info(f"تفاصيل الخطأ: {error_str}")
