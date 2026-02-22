@@ -3,7 +3,6 @@
 
 """
 منصة تام الثقافية الذكية - الفراهيدي الذكي
-TAM Smart Cultural Platform - Al-Farahidi Smart
 Powered by Chinese AI Models (Qwen, Kimi, DeepSeek)
 """
 
@@ -16,7 +15,6 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 from enum import Enum
 
-# ═══ استيراد المكتبات ═══
 import streamlit as st
 
 # ═══ إعداد الصفحة ═══
@@ -27,25 +25,43 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ═══ الألوان والتصميم ═══
+# ═══ فحص المفتاح ═══
+def get_api_key():
+    """الحصول على مفتاح API من جميع المصادر"""
+    # 1. Streamlit Secrets
+    try:
+        if 'OpenRouter_API_Key' in st.secrets:
+            return st.secrets['OpenRouter_API_Key'], "openrouter", "Streamlit Secrets"
+        if 'NVIDIA_API_Key' in st.secrets:
+            return st.secrets['NVIDIA_API_Key'], "nvidia", "Streamlit Secrets"
+    except:
+        pass
+    
+    # 2. Environment Variables
+    if os.environ.get("OpenRouter_API_Key"):
+        return os.environ.get("OpenRouter_API_Key"), "openrouter", "Environment"
+    if os.environ.get("NVIDIA_API_Key"):
+        return os.environ.get("NVIDIA_API_Key"), "nvidia", "Environment"
+    
+    return None, None, None
+
+# ═══ الألوان ═══
 COLORS = {
     'midnight_blue': '#071A2F',
     'aged_gold': '#C8A44D',
     'electric_turquoise': '#00d4c8',
-    'electric_turquoise_glow': 'rgba(0, 212, 200, 0.5)',
     'sandstone_cream': '#f5f0e3',
     'error_red': '#ff4757',
     'warning_orange': '#ffa502',
     'success_green': '#2ed573',
     'purple': '#9b59b6',
-    'cyan': '#00cec9',
     'chinese_red': '#DE2910',
 }
 
 # ═══ CSS كامل ═══
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&family=Cairo:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&family=Montserrat:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&family=Cairo:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&display=swap');
     
     .stApp {{
         background: {COLORS['midnight_blue']};
@@ -73,7 +89,7 @@ st.markdown(f"""
     
     .tam-musnad {{
         font-family: 'Times New Roman', serif; font-size: 4rem; font-weight: bold;
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #B8860B 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         text-shadow: 0 0 20px rgba(255,215,0,0.3);
@@ -81,7 +97,7 @@ st.markdown(f"""
     
     .tam-arabic {{
         font-family: 'Noto Kufi Arabic', sans-serif; font-size: 3.5rem; font-weight: bold;
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
+        background: linear-gradient(135deg, #FFD700 0%, #FFA500 50%, #B8860B 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }}
@@ -97,7 +113,6 @@ st.markdown(f"""
         color: white; padding: 8px 20px;
         border-radius: 25px; font-family: 'Noto Kufi Arabic';
         font-size: 0.9rem; margin-top: 10px;
-        box-shadow: 0 4px 15px rgba(222, 41, 16, 0.3);
     }}
     
     .farahidi-title {{
@@ -124,14 +139,13 @@ st.markdown(f"""
     
     .stTextArea textarea:focus {{
         border-color: {COLORS['electric_turquoise']} !important;
-        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
+        box-shadow: 0 0 15px rgba(0, 212, 200, 0.5) !important;
     }}
     
     .stButton > button {{
         font-family: 'Noto Kufi Arabic', sans-serif !important; font-weight: 700 !important;
         font-size: 1.1rem !important; border-radius: 50px !important;
-        padding: 1rem 2.5rem !important; border: none !important;
-        cursor: pointer !important;
+        padding: 1rem 2.5rem !important;
         background: transparent !important;
         border: 2px solid {COLORS['electric_turquoise']} !important;
         color: {COLORS['electric_turquoise']} !important;
@@ -140,7 +154,7 @@ st.markdown(f"""
     
     .stButton > button:hover {{
         background: rgba(0, 212, 200, 0.1) !important;
-        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
+        box-shadow: 0 0 15px rgba(0, 212, 200, 0.5) !important;
     }}
     
     .btn-gold > button {{
@@ -208,18 +222,10 @@ st.markdown(f"""
         color: {COLORS['error_red']};
     }}
     
-    .model-selector {{
-        background: rgba(10, 22, 40, 0.8);
-        border: 1px solid {COLORS['aged_gold']}40;
-        border-radius: 15px;
-        padding: 1.5rem;
-        margin-bottom: 2rem;
-    }}
-    
     .model-card {{
-        background: rgba(222, 41, 16, 0.1);
-        border: 1px solid {COLORS['chinese_red']};
-        border-radius: 10px;
+        background: rgba(10, 22, 40, 0.8);
+        border: 2px solid {COLORS['aged_gold']}40;
+        border-radius: 15px;
         padding: 1rem;
         margin: 0.5rem 0;
         cursor: pointer;
@@ -227,13 +233,8 @@ st.markdown(f"""
     }}
     
     .model-card:hover {{
-        background: rgba(222, 41, 16, 0.2);
-        transform: translateX(-5px);
-    }}
-    
-    .model-card.selected {{
-        background: rgba(222, 41, 16, 0.3);
-        border-width: 2px;
+        border-color: {COLORS['electric_turquoise']};
+        transform: translateY(-3px);
     }}
     
     .welcome-section {{
@@ -273,131 +274,102 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# ═══ أنواع البحور ═══
-class MeterType(Enum):
-    TAM = "تام"
-    MAJZOO = "مجزوء"
-    MASHTOOR = "مشطور"
-    MANHOOQ = "منهوك"
-    MUTAFAILA = "متفاعلة"
-
-# ═══ تعليمات صارمة للفراهيدي (الصيني) ═══
+# ═══ تعليمات الفراهيدي ═══
 FARAHEEDI_SYSTEM_PROMPT = """
-أنت الخليل بن أحمد الفراهيدي، إمام علم العروض، والمتخصص الأعلى في:
-1. التشكيل الدقيق للشعر العربي
-2. تحليل البحور العروضية بجميع تفرعاتها (تام، مجزوء، مشطور، منهوك، متفاعلة)
-3. تحليل القوافي (إسناد، تركيب، مرتابع، متدارك، مطلق...)
-4. النحو والصرف واللغة العربية الفصحى
-5. فهم مشاعر القصيدة وقراءتها قراءة عميقة
+أنت الخليل بن أحمد الفراهيدي، إمام علم العروض. حلل النص العربي التالي:
 
-قواعد صارمة يجب الالتزام بها:
-- حلل البحر بدقة: الطويل، البسيط، الكامل، الوافر، الخفيف، السريع، الرجز، الرمل، المتقارب، المتدارك، المديد، الهزج، المنسرح
-- حدد النوع: تام (4 تفعيلات)، مجزوء (3)، مشطور (2)، منهوك (1)، متفاعلة (تكرار نفس التفعيلة)
-- اكتب التشكيل الكامل والصحيح للبيت
-- حلل القافية وحدد نوعها ورويها
-- اشرح المشاعر والإحساس العام للقصيدة
-- صحح الأخطاء النحوية والإملائية إن وجدت
+1.شكله بالكامل بالشكل العربي الصحيح
+2. حدد البحر العروضي (الطويل، البسيط، الكامل، الوافر، الخفيف، السريع، الرجز، الرمل، المتقارب، المتدارك، المديد، الهزج، المنسرح)
+3. حدد نوعه: تام (4 تفعيلات)، مجزوء (3)، مشطور (2)، منهوك (1)، متفاعلة
+4. حدد التفعيلات المستخدمة
+5. حلل القافية وحدد الروي ونوعها (إسناد، تركيب، مرتابع، متدارك، مطلق...)
+6. اشرح المشاعر والإحساس العام
+7. صحح الأخطاء النحوية إن وجدت
 
 أعد النتيجة بتنسيق JSON فقط:
 {
     "diacritized_text": "النص المشكل",
     "meter_name": "اسم البحر",
     "meter_type": "تام/مجزوء/مشطور/منهوك/متفاعلة",
-    "tafeelat": ["اسم التفعيلة 1", "اسم التفعيلة 2"],
+    "tafeelat": ["تفعيلة1", "تفعيلة2"],
     "qafiya_type": "نوع القافية",
     "rawwiy": "الروي",
     "emotional_analysis": "تحليل المشاعر",
     "grammar_notes": "ملاحظات نحوية",
-    "is_single_tafeela": true/false
+    "is_single_tafeela": false
 }
 """
 
 # ═══ محرك الفراهيدي الصيني ═══
 class ChineseAIFarahidiEngine:
-    """محرك الفراهيدي الذكي باستخدام النماذج الصينية"""
+    """محرك الفراهيدي باستخدام النماذج الصينية"""
     
-    # ═══ إعدادات النماذج الصينية المتاحة ═══
     MODELS = {
         "qwen3-32b": {
             "name": "Qwen 3 (32B) - Alibaba",
             "provider": "openrouter",
             "model_id": "qwen/qwen3-32b:free",
-            "description": "أفضل نموذج صيني مفتوح المصدر، يتفوق على Llama",
-            "requires_key": True
+            "description": "أفضل نموذج صيني للعربية"
         },
         "kimi-k2": {
             "name": "Kimi K2 - Moonshot",
             "provider": "openrouter",
             "model_id": "moonshotai/kimi-k2:free",
-            "description": "خبير البرمجة واللغة العربية",
-            "requires_key": True
-        },
-        "kimi-k2.5": {
-            "name": "Kimi K2.5 - Moonshot",
-            "provider": "nvidia",
-            "model_id": "moonshotai/kimi-k2.5",
-            "description": "الأحدث والأقوى - متاح مجاناً عبر NVIDIA",
-            "requires_key": True
+            "description": "خبير البرمجة واللغة"
         },
         "deepseek-r1": {
             "name": "DeepSeek R1",
             "provider": "openrouter",
             "model_id": "deepseek/deepseek-r1:free",
-            "description": "ملك التفكير المنطقي والعميق",
-            "requires_key": True
+            "description": "ملك التفكير العميق"
         },
-        "glm-4.5": {
-            "name": "GLM-4.5 - Zhipu AI",
-            "provider": "openrouter",
-            "model_id": "z-ai/glm-4.5:free",
-            "description": "نصف الحجم، ضعف الأداء",
-            "requires_key": True
+        "kimi-k2.5": {
+            "name": "Kimi K2.5 - Moonshot",
+            "provider": "nvidia",
+            "model_id": "moonshotai/kimi-k2.5",
+            "description": "الأحدث والأقوى"
         }
     }
     
-    def __init__(self, api_key: str = None, model_key: str = "qwen3-32b"):
+    def __init__(self, api_key, provider, model_key="qwen3-32b"):
         self.api_key = api_key
+        self.provider = provider
         self.model_key = model_key
         self.model_config = self.MODELS.get(model_key, self.MODELS["qwen3-32b"])
-        self.is_configured = False
-        
-        if api_key:
-            self.is_configured = True
+        self.is_configured = api_key is not None
     
-    def analyze_poetry(self, text: str) -> Dict:
-        """تحليل الشعر باستخدام النموذج الصيني المختار"""
+    def analyze_poetry(self, text):
+        """تحليل الشعر"""
         if not self.is_configured:
             return self._fallback_analysis(text)
         
         try:
-            provider = self.model_config["provider"]
-            
-            if provider == "openrouter":
+            if self.provider == "openrouter":
                 return self._call_openrouter(text)
-            elif provider == "nvidia":
+            elif self.provider == "nvidia":
                 return self._call_nvidia(text)
             else:
                 return self._fallback_analysis(text)
-                
         except Exception as e:
-            st.warning(f"⚠️ تعذر الاتصال بالنموذج الصيني: {str(e)}")
+            st.error(f"❌ خطأ في الاتصال: {str(e)}")
             return self._fallback_analysis(text)
     
-    def _call_openrouter(self, text: str) -> Dict:
-        """استدعاء OpenRouter API"""
-        prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
-        
+    def _call_openrouter(self, text):
+        """استدعاء OpenRouter"""
         response = requests.post(
-            url="https://openrouter.ai/api/v1/chat/completions",
+            "https://openrouter.ai/api/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json",
                 "HTTP-Referer": "https://tam-platform.streamlit.app",
-                "X-Title": "الفراهيدي الذكي - تام"
+                "X-Title": "الفراهيدي الذكي"
             },
             json={
                 "model": self.model_config["model_id"],
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": [
+                    {"role": "system", "content": "أنت خبير في علم العروض العربي."},
+                    {"role": "user", "content": f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص:\n{text}"}
+                ],
                 "temperature": 0.1,
                 "max_tokens": 2048
             },
@@ -405,25 +377,25 @@ class ChineseAIFarahidiEngine:
         )
         
         if response.status_code == 200:
-            data = response.json()
-            result_text = data['choices'][0]['message']['content']
+            result_text = response.json()['choices'][0]['message']['content']
             return self._parse_result(result_text)
         else:
-            raise Exception(f"OpenRouter Error: {response.status_code}")
+            raise Exception(f"خطأ {response.status_code}: {response.text}")
     
-    def _call_nvidia(self, text: str) -> Dict:
-        """استدعاء NVIDIA NIMs API"""
-        prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
-        
+    def _call_nvidia(self, text):
+        """استدعاء NVIDIA"""
         response = requests.post(
-            url="https://integrate.api.nvidia.com/v1/chat/completions",
+            "https://integrate.api.nvidia.com/v1/chat/completions",
             headers={
                 "Authorization": f"Bearer {self.api_key}",
                 "Content-Type": "application/json"
             },
             json={
                 "model": self.model_config["model_id"],
-                "messages": [{"role": "user", "content": prompt}],
+                "messages": [
+                    {"role": "system", "content": "أنت خبير في علم العروض العربي."},
+                    {"role": "user", "content": f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص:\n{text}"}
+                ],
                 "temperature": 0.1,
                 "max_tokens": 2048
             },
@@ -431,27 +403,24 @@ class ChineseAIFarahidiEngine:
         )
         
         if response.status_code == 200:
-            data = response.json()
-            result_text = data['choices'][0]['message']['content']
+            result_text = response.json()['choices'][0]['message']['content']
             return self._parse_result(result_text)
         else:
-            raise Exception(f"NVIDIA Error: {response.status_code}")
+            raise Exception(f"خطأ {response.status_code}")
     
-    def _parse_result(self, result_text: str) -> Dict:
-        """استخراج JSON من الرد"""
-        # تنظيف الرد
-        if "```json" in result_text:
-            result_text = result_text.split("```json")[1].split("```")[0]
-        elif "```" in result_text:
-            result_text = result_text.split("```")[1].split("```")[0]
+    def _parse_result(self, text):
+        """استخراج JSON"""
+        if "```json" in text:
+            text = text.split("```json")[1].split("```")[0]
+        elif "```" in text:
+            text = text.split("```")[1].split("```")[0]
         
-        result = json.loads(result_text.strip())
+        result = json.loads(text.strip())
         result['source'] = self.model_config["name"]
-        result['model_key'] = self.model_key
         return result
     
-    def _fallback_analysis(self, text: str) -> Dict:
-        """تحليل بديل محلي"""
+    def _fallback_analysis(self, text):
+        """تحليل محلي"""
         return {
             "diacritized_text": text,
             "meter_name": "غير محدد (تحليل محلي)",
@@ -462,8 +431,7 @@ class ChineseAIFarahidiEngine:
             "emotional_analysis": "يتطلب الاتصال بالنموذج الصيني",
             "grammar_notes": "",
             "is_single_tafeela": False,
-            "source": "تحليل محلي",
-            "model_key": "local"
+            "source": "تحليل محلي"
         }
 
 # ═══ دوال العرض ═══
@@ -479,118 +447,54 @@ def render_logo():
     </div>
     """, unsafe_allow_html=True)
 
-def render_model_selector() -> tuple:
-    """عرض اختيار النموذج الصيني"""
+def render_status(api_key, provider, source):
+    """عرض حالة الاتصال"""
+    if api_key:
+        st.markdown(f"""
+        <div class="status-message success">
+            ✅ <strong>متصل بنجاح!</strong><br>
+            المصدر: {source} | المزود: {provider.upper()}
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div class="status-message warning">
+            ⚠️ <strong>لا يوجد مفتاح API</strong><br>
+            سيعمل التطبيق بالتحليل المحلي المحدود.<br>
+            <small>أضف المفتاح في Settings → Secrets</small>
+        </div>
+        """, unsafe_allow_html=True)
+
+def render_model_selector():
+    """اختيار النموذج"""
     st.markdown("### 🤖 اختر النموذج الصيني")
     
-    cols = st.columns(3)
-    selected_model = None
-    
     models = ChineseAIFarahidiEngine.MODELS
+    cols = st.columns(2)
+    
+    selected = st.session_state.get('selected_model', 'qwen3-32b')
     
     for idx, (key, config) in enumerate(models.items()):
-        with cols[idx % 3]:
-            is_selected = st.session_state.get('selected_model') == key
-            border_color = "#DE2910" if is_selected else "#C8A44D40"
-            bg_color = "rgba(222, 41, 16, 0.2)" if is_selected else "rgba(10, 22, 40, 0.6)"
+        with cols[idx % 2]:
+            is_selected = selected == key
+            border = "#00d4c8" if is_selected else "#C8A44D40"
+            bg = "rgba(0, 212, 200, 0.1)" if is_selected else "rgba(10, 22, 40, 0.6)"
             
-            card_html = f"""
-            <div style="
-                background: {bg_color};
-                border: 2px solid {border_color};
-                border-radius: 15px;
-                padding: 1rem;
-                margin: 0.5rem 0;
-                cursor: pointer;
-                transition: all 0.3s ease;
-            ">
-                <div style="font-family: 'Noto Kufi Arabic'; font-weight: bold; color: #00d4c8; font-size: 1rem;">
-                    {config['name']}
-                </div>
-                <div style="font-size: 0.8rem; color: #f5f0e3; opacity: 0.8; margin-top: 5px;">
-                    {config['description']}
-                </div>
-                <div style="font-size: 0.7rem; color: #C8A44D; margin-top: 5px;">
-                    المزود: {config['provider']}
-                </div>
+            st.markdown(f"""
+            <div style="background: {bg}; border: 2px solid {border}; border-radius: 15px; padding: 1rem; margin: 0.5rem 0;">
+                <div style="font-family: 'Noto Kufi Arabic'; font-weight: bold; color: #00d4c8;">{config['name']}</div>
+                <div style="font-size: 0.8rem; color: #f5f0e3; opacity: 0.8;">{config['description']}</div>
             </div>
-            """
-            st.markdown(card_html, unsafe_allow_html=True)
+            """, unsafe_allow_html=True)
             
             if st.button(f"اختيار", key=f"btn_{key}", use_container_width=True):
                 st.session_state.selected_model = key
                 st.rerun()
     
-    return st.session_state.get('selected_model', 'qwen3-32b')
+    return selected
 
-def get_api_key_for_model(model_key: str) -> Optional[str]:
-    """الحصول على مفتاح API المناسب للنموذج"""
-    config = ChineseAIFarahidiEngine.MODELS.get(model_key)
-    if not config:
-        return None
-    
-    provider = config["provider"]
-    
-    # محاولة قراءة من Secrets
-    try:
-        if provider == "openrouter":
-            if 'OpenRouter_API_Key' in st.secrets:
-                return st.secrets['OpenRouter_API_Key']
-        elif provider == "nvidia":
-            if 'NVIDIA_API_Key' in st.secrets:
-                return st.secrets['NVIDIA_API_Key']
-    except:
-        pass
-    
-    # محاولة قراءة من متغيرات البيئة
-    if provider == "openrouter":
-        return os.environ.get("OpenRouter_API_Key")
-    elif provider == "nvidia":
-        return os.environ.get("NVIDIA_API_Key")
-    
-    return None
-
-def render_api_key_input(model_key: str):
-    """عرض حقل إدخال مفتاح API"""
-    config = ChineseAIFarahidiEngine.MODELS.get(model_key)
-    if not config:
-        return None
-    
-    provider = config["provider"]
-    
-    st.markdown(f"""
-    <div style="background: rgba(255, 165, 2, 0.1); border: 1px dashed #ffa502; 
-                border-radius: 10px; padding: 1rem; margin: 1rem 0;">
-        <div style="font-family: 'Noto Kufi Arabic'; color: #ffa502; margin-bottom: 10px;">
-            🔑 أدخل مفتاح API للـ {config['name']}
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    if provider == "openrouter":
-        st.markdown("""
-        <div style="font-size: 0.9rem; margin-bottom: 10px;">
-            1. سجل مجاناً في <a href="https://openrouter.ai" target="_blank" style="color: #00d4c8;">openrouter.ai</a><br>
-            2. احصل على API Key من لوحة التحكم<br>
-            3. أدخل المفتاح هنا:
-        </div>
-        """, unsafe_allow_html=True)
-        api_key = st.text_input("OpenRouter API Key", type="password", key="openrouter_key")
-        
-    elif provider == "nvidia":
-        st.markdown("""
-        <div style="font-size: 0.9rem; margin-bottom: 10px;">
-            1. سجل مجاناً في <a href="https://build.nvidia.com" target="_blank" style="color: #00d4c8;">build.nvidia.com</a><br>
-            2. اختر Kimi K2.5 واضغط "Get API Key"<br>
-            3. أدخل المفتاح هنا:
-        </div>
-        """, unsafe_allow_html=True)
-        api_key = st.text_input("NVIDIA API Key", type="password", key="nvidia_key")
-    
-    return api_key
-
-def render_result(result: Dict):
-    """عرض نتائج التحليل"""
+def render_result(result):
+    """عرض النتائج"""
     meter_name = result.get('meter_name', 'غير محدد')
     meter_type = result.get('meter_type', 'غير معروف')
     tafeelat = result.get('tafeelat', [])
@@ -600,10 +504,7 @@ def render_result(result: Dict):
     grammar = result.get('grammar_notes', '')
     source = result.get('source', 'غير معروف')
     
-    # شارة المصدر
-    is_chinese = "Gemini" not in str(source) and "محلي" not in str(source)
-    badge_color = "#DE2910" if is_chinese else "#4CAF50"
-    badge_text = "🇨🇳 نموذج صيني" if is_chinese else "✓"
+    is_chinese = "محلي" not in str(source)
     
     col1, col2, col3 = st.columns(3)
     
@@ -623,33 +524,29 @@ def render_result(result: Dict):
     
     with col3:
         confidence = 95 if is_chinese else 60
-        color = "#4CAF50" if confidence > 80 else "#ffa502"
+        color = "#2ed573" if is_chinese else "#ffa502"
         st.markdown(f"""
         <div class="result-card" style="border-right-color: {color}">
             <div class="result-label">الثقة</div>
             <div class="result-value" style="color:{color}">{confidence}%</div>
         </div>""", unsafe_allow_html=True)
     
-    # شارة المصدر
+    badge = "🇨🇳 نموذج صيني" if is_chinese else "⚠️ تحليل محلي"
+    badge_color = "#DE2910" if is_chinese else "#ffa502"
+    
     st.markdown(f"""
     <div style="text-align: center; margin: 10px 0;">
-        <span style="background: {badge_color}; color: white; padding: 5px 15px; 
-                     border-radius: 20px; font-size: 0.9rem; font-family: 'Noto Kufi Arabic';">
-            {badge_text} | {source}
+        <span style="background: {badge_color}; color: white; padding: 5px 15px; border-radius: 20px; font-size: 0.9rem; font-family: 'Noto Kufi Arabic';">
+            {badge} | {source}
         </span>
     </div>
     """, unsafe_allow_html=True)
     
     if rawwiy:
         st.markdown(f"""
-        <div style="background: rgba(155, 89, 182, 0.2); border: 2px solid #9b59b6; 
-                    border-radius: 15px; padding: 1.5rem; margin: 1rem 0; text-align: center;">
-            <div style="font-size: 1.3rem; font-weight: bold; color: #9b59b6; margin-bottom: 10px;">
-                القافية: {qafiya_type}
-            </div>
-            <div style="font-size: 1.1rem; color: #f5f0e3;">
-                الروي: <strong>{rawwiy}</strong>
-            </div>
+        <div style="background: rgba(155, 89, 182, 0.2); border: 2px solid #9b59b6; border-radius: 15px; padding: 1.5rem; margin: 1rem 0; text-align: center;">
+            <div style="font-size: 1.3rem; font-weight: bold; color: #9b59b6; margin-bottom: 10px;">القافية: {qafiya_type}</div>
+            <div style="font-size: 1.1rem; color: #f5f0e3;">الروي: <strong>{rawwiy}</strong></div>
         </div>
         """, unsafe_allow_html=True)
     
@@ -659,10 +556,8 @@ def render_result(result: Dict):
         for idx, taf in enumerate(tafeelat):
             with cols[idx % 4]:
                 st.markdown(f"""
-                <div style="background: rgba(10, 22, 40, 0.8); border-radius: 15px; 
-                            padding: 1rem; border: 2px solid #2ed573; text-align: center;">
-                    <div style="font-family: 'Noto Kufi Arabic'; font-weight: bold; 
-                                color: #00d4c8; font-size: 1.2rem;">{taf}</div>
+                <div style="background: rgba(10, 22, 40, 0.8); border-radius: 15px; padding: 1rem; border: 2px solid #2ed573; text-align: center;">
+                    <div style="font-family: 'Noto Kufi Arabic'; font-weight: bold; color: #00d4c8; font-size: 1.2rem;">{taf}</div>
                 </div>
                 """, unsafe_allow_html=True)
     
@@ -681,7 +576,7 @@ def render_welcome_section():
         <div style="font-family: 'Noto Kufi Arabic'; font-size: 1.3rem; color: #f5f0e3; line-height: 2; margin-bottom: 1.5rem;">
             أهلاً بك في <span style="color: #00d4c8; font-weight: bold;">منصة تام</span>.. 
             <span style="color: #00d4c8; font-weight: bold;">الفراهيدي الذكي</span> بانتظارك! ❤️<br>
-            لدعم استمرار هذا المشروع الثقافي، نرجو منك الانضمام لأسرتنا على فيسبوك.
+            لدعم استمرار هذا المشروع الثقافي، انضم لمجتمعنا على فيسبوك.
         </div>
         <div style="display: flex; justify-content: center;">
             <a href="https://www.facebook.com/profile.php?id=61588035955900" target="_blank" class="facebook-btn">
@@ -689,13 +584,6 @@ def render_welcome_section():
                 <span>انضم لمجتمعنا على فيسبوك</span>
             </a>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_footer():
-    st.markdown("""
-    <div class="tam-footer">
-        جميع الحقوق محفوظة © 2026 منصة تام الثقافية | الفراهيدي الذكي 🇨🇳
     </div>
     """, unsafe_allow_html=True)
 
@@ -713,33 +601,17 @@ def main():
     if 'analysis_result' not in st.session_state:
         st.session_state.analysis_result = None
     
+    # الحصول على المفتاح
+    api_key, provider, source = get_api_key()
+    
+    # عرض الحالة
+    render_status(api_key, provider, source)
+    
     # اختيار النموذج
     selected_model = render_model_selector()
     
-    # الحصول على مفتاح API
-    api_key = get_api_key_for_model(selected_model)
-    
-    # إذا لم يكن المفتاح في Secrets، اطلب من المستخدم
-    if not api_key:
-        api_key = render_api_key_input(selected_model)
-    
     # تهيئة المحرك
-    engine = ChineseAIFarahidiEngine(api_key, selected_model)
-    
-    # عرض حالة الاتصال
-    if engine.is_configured:
-        st.markdown(f"""
-        <div class="status-message success">
-            ✅ متصل بنجاح بـ <strong>{engine.model_config['name']}</strong>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div class="status-message warning">
-            ⚠️ لم يتم إدخال مفتاح API. سيعمل التطبيق بالتحليل المحلي المحدود.<br>
-            <small>أدخل المفتاح أعلاه للاستفادة من قوة النماذج الصينية</small>
-        </div>
-        """, unsafe_allow_html=True)
+    engine = ChineseAIFarahidiEngine(api_key, provider, selected_model)
     
     # الألسنة
     tab1, tab2 = st.tabs(["✍️ المُشكّل الآلي", "🔍 المحلل العروضي"])
@@ -768,7 +640,7 @@ def main():
         with col2:
             st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
             if st.button("📋 مثال", use_container_width=True):
-                st.session_state.raw_text = "وحلف النصب يا ايتول هنا\nتوشي الليل والاحزان جهرا"
+                st.session_state.raw_text = "يا دارَ عَبْدٍ وَفَتْنَةٍ وَمُلاحَةٍ\nهَلْ عِنْدَ رَبْعٍ بِالخَخْ وَالأَبْطَحَيْنِ مِنْزَلُ"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -786,7 +658,6 @@ def main():
             
             st.markdown("### 📝 النص المشكل:")
             st.markdown(f'<div class="diacritics-box">{result.get("diacritized_text", "")}</div>', unsafe_allow_html=True)
-            st.code(result.get("diacritized_text", ""), language="text")
             
             st.markdown("### 🎯 التحليل العروضي:")
             render_result(result)
@@ -813,7 +684,7 @@ def main():
         with col2:
             st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
             if st.button("📋 مثال", use_container_width=True, key="ex2"):
-                st.session_state.final_text = "سَيَسْتَبْقِي الهِتَافُ إلَيْكَ دَهْرًا\nفَشَقَّ الدَّرْبَ بِالأَحْرَارِ نَصْرًا"
+                st.session_state.final_text = "مَلاَئِكَةُ الرَّحْمَنِ تَحْيَا فِي أَحْشَائِي\nوَتَمْشِي عَلَى أَرْضِي وَتَطُوفُ فَوْقَ رَأْسِي"
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -829,7 +700,12 @@ def main():
             render_result(st.session_state.deep_analysis)
     
     render_welcome_section()
-    render_footer()
+    
+    st.markdown("""
+    <div class="tam-footer">
+        جميع الحقوق محفوظة © 2026 منصة تام الثقافية | الفراهيدي الذكي 🇨🇳
+    </div>
+    """, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
