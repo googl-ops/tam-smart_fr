@@ -15,10 +15,8 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 from enum import Enum
 
-# ═══ استيراد المكتبات ═══
 import streamlit as st
 
-# ═══ استيراد المكتبة الجديدة ═══
 try:
     from google import genai
     from google.genai import types
@@ -27,30 +25,24 @@ except ImportError:
     GEMINI_AVAILABLE = False
     genai = None
     types = None
-    st.error("❌ مكتبة google-genai غير مثبتة. تأكد من: pip install google-genai")
+    st.error("❌ مكتبة google-genai غير مثبتة. نفذ: pip install google-genai")
 
-# ═══ استدعاء المفتاح السري ═══
 def get_gemini_api_key():
-    """استرجاع مفتاح Gemini API"""
-    # من Streamlit Secrets
     try:
         if 'Gemini_API_Key' in st.secrets:
             return st.secrets['Gemini_API_Key']
     except:
         pass
     
-    # من متغيرات البيئة
     api_key = os.environ.get("Gemini_API_Key")
     if api_key:
         return api_key
     
-    # من session state
     if 'Gemini_API_Key' in st.session_state and st.session_state.Gemini_API_Key:
         return st.session_state.Gemini_API_Key
     
     return None
 
-# ═══ إعداد الصفحة ═══
 st.set_page_config(
     page_title="الفراهيدي الذكي | تام",
     page_icon="🧠",
@@ -58,7 +50,6 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ═══ قراءة الصورة وتحويلها إلى Base64 ═══
 def get_logo_base64():
     try:
         logo_path = "logo.jpg"
@@ -71,7 +62,6 @@ def get_logo_base64():
 
 logo_base64 = get_logo_base64()
 
-# ═══ إعداد أيقونة التطبيق ═══
 if logo_base64:
     st.markdown(f"""
     <link rel="apple-touch-icon" sizes="180x180" href="data:image/jpeg;base64,{logo_base64}">
@@ -89,7 +79,6 @@ else:
     <meta name="theme-color" content="#071A2F">
     """, unsafe_allow_html=True)
 
-# ═══ الألوان والتصميم ═══
 COLORS = {
     'midnight_blue': '#071A2F',
     'aged_gold': '#C8A44D',
@@ -521,7 +510,6 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# ═══ أنواع البحور ═══
 class MeterType(Enum):
     TAM = "تام"
     MAJZOO = "مجزوء"
@@ -575,7 +563,6 @@ class ShatrAnalysis:
     emotional_analysis: str = ""
     grammar_check: str = ""
 
-# ═══ تعليمات صارمة للفراهيدي (Gemini) ═══
 FARAHEEDI_SYSTEM_PROMPT = """
 أنت الخليل بن أحمد الفراهيدي، إمام علم العروض، والمتخصص الأعلى في:
 1. التشكيل الدقيق للشعر العربي
@@ -606,10 +593,7 @@ FARAHEEDI_SYSTEM_PROMPT = """
 }
 """
 
-# ═══ محرك Gemini الفراهيدي (المحدث لـ Gemini 2.5 Flash) ═══
 class FarahidiGeminiEngine:
-    """محرك الفراهيدي الذكي باستخدام Gemini 2.5 Flash"""
-    
     def __init__(self, api_key: str = None):
         self.api_key = api_key
         self.client = None
@@ -624,7 +608,6 @@ class FarahidiGeminiEngine:
             return
             
         try:
-            # ═══ التهيئة بالمكتبة الجديدة ═══
             self.client = genai.Client(api_key=api_key)
             self.is_configured = True
             st.success("✅ تم الاتصال بنجاح بالفراهيدي الذكي (Gemini 2.5 Flash)")
@@ -632,7 +615,6 @@ class FarahidiGeminiEngine:
             st.error(f"❌ خطأ في إعداد Gemini: {str(e)}")
     
     def analyze_poetry(self, text: str) -> Dict:
-        """تحليل الشعر باستخدام الفراهيدي (Gemini 2.5 Flash)"""
         if not self.is_configured or not self.client:
             st.error("❌ لم يتم تهيئة محرك Gemini بشكل صحيح. يرجى التحقق من المفتاح API.")
             return {
@@ -652,7 +634,6 @@ class FarahidiGeminiEngine:
         try:
             prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
             
-            # ═══ استخدام Gemini 2.5 Flash ═══
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=prompt,
@@ -664,7 +645,6 @@ class FarahidiGeminiEngine:
             
             result_text = response.text
             
-            # استخراج JSON من الرد
             if "```json" in result_text:
                 result_text = result_text.split("```json")[1].split("```")[0]
             elif "```" in result_text:
@@ -690,7 +670,6 @@ class FarahidiGeminiEngine:
                 "source": "خطأ في التحليل"
             }
 
-# ═══ دوال العرض ═══
 def render_logo():
     st.markdown("""
     <div class="tam-logo-container">
@@ -724,8 +703,6 @@ def get_meter_badge_class(meter_type: MeterType) -> str:
     return badge_map.get(meter_type, 'badge-tam')
 
 def render_result(result: Dict, shatr_num: int = 1):
-    """عرض نتائج التحليل"""
-    
     meter_name = result.get('meter_name', 'غير محدد')
     meter_type_str = result.get('meter_type', 'غير معروف')
     meter_type = get_meter_type_enum(meter_type_str)
@@ -826,9 +803,7 @@ def render_result(result: Dict, shatr_num: int = 1):
         elif has_error:
             st.markdown(f'<div style="color: {COLORS["error_red"]}; font-size: 0.9rem; margin-top: 10px;">✗ فشل الاتصال بالفراهيدي الذكي</div>', unsafe_allow_html=True)
 
-# ═══ قسم الترحيب والفيسبوك ═══
 def render_welcome_section():
-    """عرض قسم الترحيب وزر الفيسبوك"""
     st.markdown("""
     <div class="welcome-section">
         <div class="welcome-text">
@@ -853,9 +828,7 @@ def render_footer():
     </div>
     """, unsafe_allow_html=True)
 
-# ═══ النوافذ الرئيسية ═══
 def diacritics_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
-    """نافذة التشكيل والتدقيق"""
     st.markdown('<div class="input-label">أدخل النص ليقوم الفراهيدي بتشكيله وتدقيقه:</div>', unsafe_allow_html=True)
     
     if not secrets_working:
@@ -935,7 +908,6 @@ Gemini_API_Key = "your-gemini-api-key-here"'''
         st.info("💡 يمكنك نسخ النص المشكل أو الانتقال لنافذة التحليل للتفاصيل الكاملة")
 
 def analysis_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
-    """نافذة التحليل العروضي المفصل"""
     st.markdown('<div class="input-label">تحليل الوزن العروضي:</div>', unsafe_allow_html=True)
     
     text_to_analyze = st.text_area(
@@ -981,24 +953,19 @@ def analysis_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
     elif st.session_state.get('analysis_result'):
         st.info("استخدم التحليل من نافذة التشكيل أعلاه، أو أدخل نصاً جديداً للتحليل العميق")
 
-# ═══ الدالة الرئيسية ═══
 def main():
     render_logo()
     
-    # تهيئة session state
     if 'raw_text' not in st.session_state:
         st.session_state.raw_text = ""
     if 'final_text' not in st.session_state:
         st.session_state.final_text = ""
     
-    # ═══ استدعاء المفتاح السري من Streamlit Secrets ═══
     api_key = get_gemini_api_key()
     secrets_working = api_key is not None
     
-    # ═══ إعداد محرك الفراهيدي بالمفتاح (سواء من Secrets أو None) ═══
     engine = FarahidiGeminiEngine(api_key)
     
-    # ═══ عرض تحذير إذا لم يتم العثور على مفتاح ═══
     if not secrets_working:
         st.markdown("""
         <div class="status-message error">
@@ -1016,9 +983,7 @@ def main():
     with tab2:
         analysis_tab(engine, secrets_working)
     
-    # عرض قسم الترحيب والفيسبوك
     render_welcome_section()
-    
     render_footer()
 
 if __name__ == "__main__":
