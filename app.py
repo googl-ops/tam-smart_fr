@@ -182,8 +182,9 @@ st.markdown("""
         display: inline-flex; align-items: center; gap: 0.5rem;
     }
     
+    /* ═══ تعديلات النافذة الشفافة ═══ */
     .stTextArea textarea {
-        background: rgba(255, 255, 255, 0.03) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
         border: 2px solid """ + COLORS['aged_gold'] + """60 !important;
         border-radius: 15px !important;
         color: """ + COLORS['sandstone_cream'] + """ !important;
@@ -194,21 +195,34 @@ st.markdown("""
         direction: rtl !important;
         min-height: 150px !important;
         padding: 20px !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
     }
     
     .stTextArea textarea:focus {
         border-color: """ + COLORS['electric_turquoise'] + """ !important;
-        box-shadow: 0 0 15px """ + COLORS['electric_turquoise_glow'] + """ !important;
-        background: rgba(10, 25, 50, 0.95) !important;
+        box-shadow: 0 0 20px """ + COLORS['electric_turquoise_glow'] + """ !important;
+        background: rgba(10, 25, 50, 0.8) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
     }
     
     .stTextArea textarea::placeholder {
-        color: rgba(245, 240, 227, 0.5) !important;
+        color: rgba(245, 240, 227, 0.4) !important;
         font-size: 1.2rem !important;
     }
     
+    /* ═══ تأثير شفافية عند التركيز ═══ */
+    .stTextArea > div {
+        background: transparent !important;
+    }
+    
+    .stTextArea > div > div {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border-radius: 15px !important;
+    }
+    
     .stTextArea label { display: none !important; }
-    .stTextArea > div > div { background: transparent !important; }
     
     .stButton > button {
         font-family: 'Noto Kufi Arabic', sans-serif !important; font-weight: 700 !important;
@@ -607,57 +621,6 @@ class FarahidiGeminiEngine:
         except Exception as e:
             st.error(f"❌ خطأ في إعداد Gemini: {str(e)}")
     
-    def _clean_json(self, text: str) -> str:
-        """تنظيف وإصلاح JSON المعطل"""
-        # إزالة BOM وأحرف غير مرئية
-        text = text.strip().lstrip('\ufeff')
-        
-        # البحث عن JSON بين أول { وآخر }
-        start_idx = text.find('{')
-        end_idx = text.rfind('}')
-        
-        if start_idx == -1 or end_idx == -1 or end_idx <= start_idx:
-            raise ValueError("لم يتم العثور على JSON صالح")
-        
-        text = text[start_idx:end_idx+1]
-        
-        # إزالة الفواصل الزائدة
-        text = re.sub(r',\s*}', '}', text)
-        text = re.sub(r',\s*]', ']', text)
-        
-        # إصلاح أحرف الهروب
-        text = text.replace('\n', '\\n').replace('\r', '\\r').replace('\t', '\\t')
-        
-        # إزالة أي محتوى بعد الـ JSON الصالح
-        brace_count = 0
-        in_string = False
-        escape_next = False
-        valid_end = 0
-        
-        for i, char in enumerate(text):
-            if escape_next:
-                escape_next = False
-                continue
-            if char == '\\':
-                escape_next = True
-                continue
-            if char == '"' and not escape_next:
-                in_string = not in_string
-                continue
-            if not in_string:
-                if char == '{':
-                    brace_count += 1
-                elif char == '}':
-                    brace_count -= 1
-                    if brace_count == 0:
-                        valid_end = i + 1
-                        break
-        
-        if valid_end > 0:
-            text = text[:valid_end]
-        
-        return text
-    
     def analyze_poetry(self, text: str) -> Dict:
         if not self.is_configured or not self.client:
             st.error("❌ لم يتم تهيئة محرك Gemini بشكل صحيح")
@@ -687,28 +650,60 @@ class FarahidiGeminiEngine:
                 )
             )
             
-            # تنظيف وparse JSON
-            cleaned_json = self._clean_json(response.text)
-            result = json.loads(cleaned_json)
+            # ═══ التحقق من الرد الفارغ ═══
+            if not response.text or not response.text.strip():
+                raise ValueError("الرد فارغ من Gemini")
             
-            result['source'] = 'Gemini 2.5 Flash'
-            return result
+            # ═══ محاولات متعددة لاستخراج JSON ═══
+            result_text = response.text.strip()
             
-        except json.JSONDecodeError as e:
-            st.error(f"❌ خطأ في قراءة JSON: {str(e)}")
-            return {
-                "error": f"JSON Error: {str(e)}",
-                "diacritized_text": text,
-                "meter_name": "غير محدد",
-                "meter_type": "غير معروف",
-                "tafeelat": [],
-                "qafiya_type": "غير محدد",
-                "rawwiy": "",
-                "emotional_analysis": "حدث خطأ في معالجة الرد",
-                "grammar_notes": "",
-                "is_single_tafeela": False,
-                "source": "خطأ في JSON"
-            }
+            # محاولة 1: JSON نقي مباشر
+            try:
+                result = json.loads(result_text)
+                result['source'] = 'Gemini 2.5 Flash'
+                return result
+            except json.JSONDecodeError:
+                pass
+            
+            # محاولة 2: بين علامات ```json
+            if "```json" in result_text:
+                try:
+                    json_part = result_text.split("```json")[1].split("```")[0].strip()
+                    result = json.loads(json_part)
+                    result['source'] = 'Gemini 2.5 Flash'
+                    return result
+                except:
+                    pass
+            
+            # محاولة 3: بين علامات ```
+            if "```" in result_text:
+                try:
+                    json_part = result_text.split("```")[1].split("```")[0].strip()
+                    result = json.loads(json_part)
+                    result['source'] = 'Gemini 2.5 Flash'
+                    return result
+                except:
+                    pass
+            
+            # محاولة 4: البحث بين { و }
+            start_idx = result_text.find('{')
+            end_idx = result_text.rfind('}')
+            
+            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                try:
+                    json_part = result_text[start_idx:end_idx+1]
+                    # تنظيف شائع
+                    json_part = re.sub(r',\s*}', '}', json_part)
+                    json_part = re.sub(r',\s*]', ']', json_part)
+                    json_part = json_part.replace('\n', ' ').replace('\r', ' ')
+                    result = json.loads(json_part)
+                    result['source'] = 'Gemini 2.5 Flash'
+                    return result
+                except:
+                    pass
+            
+            # جميع المحاولات فشلت
+            raise ValueError(f"لم يتم العثور على JSON صالح. الرد: {result_text[:150]}...")
             
         except Exception as e:
             st.error(f"❌ خطأ في تحليل Gemini: {str(e)}")
@@ -918,7 +913,8 @@ Gemini_API_Key = "your-gemini-api-key-here"'''
         placeholder="اكتب النص هنا..."
     )
     
-    col1, col2, col3 = st.columns(3)
+    # ═══ حذف زر المثال، إبقاء تشكيل وتحليل + مسح فقط ═══
+    col1, col2 = st.columns(2)
     
     with col1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
@@ -936,13 +932,6 @@ Gemini_API_Key = "your-gemini-api-key-here"'''
                 st.warning("أدخل نصاً أولاً.")
     
     with col2:
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        if st.button("📋 مثال", use_container_width=True, key="btn_example_diac"):
-            st.session_state.raw_text = "وحلف النصب يا ايتول هنا\nتوشي الليل والاحزان جهرا"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button("🗑️ مسح", use_container_width=True, key="btn_clear_diac"):
             st.session_state.raw_text = ""
@@ -974,7 +963,8 @@ def analysis_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
         placeholder="أدخل النص المشكل هنا..."
     )
     
-    col1, col2, col3 = st.columns(3)
+    # ═══ حذف زر المثال، إبقاء تحليل عميق + مسح فقط ═══
+    col1, col2 = st.columns(2)
     
     with col1:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
@@ -990,13 +980,6 @@ def analysis_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
                 st.error("⚠️ أدخل نصاً أولاً!")
     
     with col2:
-        st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
-        if st.button("📋 مثال", use_container_width=True, key="btn_example_anal"):
-            st.session_state.final_text = "سَيَسْتَبْقِي الهِتَافُ إلَيْكَ دَهْرًا\nفَشَقَّ الدَّرْبَ بِالأَحْرَارِ نَصْرًا"
-            st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with col3:
         st.markdown('<div class="btn-gold">', unsafe_allow_html=True)
         if st.button("🗑️ مسح", use_container_width=True, key="btn_clear_anal"):
             st.session_state.final_text = ""
@@ -1044,4 +1027,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
