@@ -182,7 +182,6 @@ st.markdown("""
         display: inline-flex; align-items: center; gap: 0.5rem;
     }
     
-    /* ═══ تعديلات النافذة الشفافة ═══ */
     .stTextArea textarea {
         background: rgba(255, 255, 255, 0.05) !important;
         border: 2px solid """ + COLORS['aged_gold'] + """60 !important;
@@ -212,7 +211,6 @@ st.markdown("""
         font-size: 1.2rem !important;
     }
     
-    /* ═══ تأثير شفافية عند التركيز ═══ */
     .stTextArea > div {
         background: transparent !important;
     }
@@ -639,71 +637,49 @@ class FarahidiGeminiEngine:
             }
         
         try:
-            prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
+            # ═══ تعريف schema صارم لـ JSON ═══
+            response_schema = {
+                "type": "object",
+                "properties": {
+                    "diacritized_text": {"type": "string"},
+                    "meter_name": {"type": "string"},
+                    "meter_type": {"type": "string"},
+                    "tafeelat": {
+                        "type": "array",
+                        "items": {"type": "string"}
+                    },
+                    "qafiya_type": {"type": "string"},
+                    "rawwiy": {"type": "string"},
+                    "emotional_analysis": {"type": "string"},
+                    "grammar_notes": {"type": "string"},
+                    "is_single_tafeela": {"type": "boolean"}
+                },
+                "required": ["diacritized_text", "meter_name", "meter_type", "tafeelat"]
+            }
+            
+            prompt = f"""أنت الخليل بن أحمد الفراهيدي. حلل هذا النص وأعد JSON صالح:
+النص: {text}
+
+أعد JSON فقط بدون أي نص إضافي."""
             
             response = self.client.models.generate_content(
                 model="models/gemini-2.5-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
-                    temperature=0.1,
-                    max_output_tokens=4096,
+                    temperature=0.0,
+                    max_output_tokens=2048,
+                    response_schema=response_schema,
                 )
             )
             
-            # ═══ التحقق من الرد الفارغ ═══
-            if not response.text or not response.text.strip():
-                raise ValueError("الرد فارغ من Gemini")
-            
-            # ═══ محاولات متعددة لاستخراج JSON ═══
             result_text = response.text.strip()
             
-            # محاولة 1: JSON نقي مباشر
-            try:
-                result = json.loads(result_text)
-                result['source'] = 'Gemini 2.5 Flash'
-                return result
-            except json.JSONDecodeError:
-                pass
+            if not result_text:
+                raise ValueError("الرد فارغ من Gemini")
             
-            # محاولة 2: بين علامات ```json
-            if "```json" in result_text:
-                try:
-                    json_part = result_text.split("```json")[1].split("```")[0].strip()
-                    result = json.loads(json_part)
-                    result['source'] = 'Gemini 2.5 Flash'
-                    return result
-                except:
-                    pass
-            
-            # محاولة 3: بين علامات ```
-            if "```" in result_text:
-                try:
-                    json_part = result_text.split("```")[1].split("```")[0].strip()
-                    result = json.loads(json_part)
-                    result['source'] = 'Gemini 2.5 Flash'
-                    return result
-                except:
-                    pass
-            
-            # محاولة 4: البحث بين { و }
-            start_idx = result_text.find('{')
-            end_idx = result_text.rfind('}')
-            
-            if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
-                try:
-                    json_part = result_text[start_idx:end_idx+1]
-                    # تنظيف شائع
-                    json_part = re.sub(r',\s*}', '}', json_part)
-                    json_part = re.sub(r',\s*]', ']', json_part)
-                    json_part = json_part.replace('\n', ' ').replace('\r', ' ')
-                    result = json.loads(json_part)
-                    result['source'] = 'Gemini 2.5 Flash'
-                    return result
-                except:
-                    pass
-            
-            # جميع المحاولات فشلت
-            raise ValueError(f"لم يتم العثور على JSON صالح. الرد: {result_text[:150]}...")
+            result = json.loads(result_text)
+            result['source'] = 'Gemini 2.5 Flash'
+            return result
             
         except Exception as e:
             st.error(f"❌ خطأ في تحليل Gemini: {str(e)}")
@@ -913,7 +889,6 @@ Gemini_API_Key = "your-gemini-api-key-here"'''
         placeholder="اكتب النص هنا..."
     )
     
-    # ═══ حذف زر المثال، إبقاء تشكيل وتحليل + مسح فقط ═══
     col1, col2 = st.columns(2)
     
     with col1:
@@ -963,7 +938,6 @@ def analysis_tab(engine: FarahidiGeminiEngine, secrets_working: bool):
         placeholder="أدخل النص المشكل هنا..."
     )
     
-    # ═══ حذف زر المثال، إبقاء تحليل عميق + مسح فقط ═══
     col1, col2 = st.columns(2)
     
     with col1:
