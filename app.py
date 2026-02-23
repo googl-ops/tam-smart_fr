@@ -579,6 +579,12 @@ FARAHEEDI_SYSTEM_PROMPT = """
 - اشرح المشاعر والإحساس العام للقصيدة
 - صحح الأخطاء النحوية والإملائية إن وجدت
 
+⚠️ مهم جداً: يجب أن تُرجع JSON كاملاً ومغلقاً بشكل صحيح:
+- تأكد من إغلاق جميع الأقواس { }
+- تأكد من إغلاق جميع الأقواس المربعة [ ]
+- لا تضف أي نص قبل أو بعد JSON
+- JSON يجب أن يكون صالحاً 100%
+
 أعد النتيجة بتنسيق JSON فقط:
 {
     "diacritized_text": "النص المشكل",
@@ -635,24 +641,47 @@ class FarahidiGeminiEngine:
             prompt = f"{FARAHEEDI_SYSTEM_PROMPT}\n\nالنص المدخل:\n{text}\n\nحلل هذا النص كالفراهيدي الخبير وأعد النتيجة بتنسيق JSON فقط."
             
             response = self.client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="models/gemini-2.5-flash",
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     temperature=0.1,
                     max_output_tokens=2048,
+                    response_mime_type="application/json",
                 )
             )
             
-            result_text = response.text
+            result_text = response.text.strip()
             
-            if "```json" in result_text:
-                result_text = result_text.split("```json")[1].split("```")[0]
-            elif "```" in result_text:
-                result_text = result_text.split("```")[1].split("```")[0]
+            try:
+                result = json.loads(result_text)
+            except json.JSONDecodeError as json_err:
+                start_idx = result_text.find('{')
+                end_idx = result_text.rfind('}')
+                
+                if start_idx != -1 and end_idx != -1 and end_idx > start_idx:
+                    result_text = result_text[start_idx:end_idx+1]
+                    result = json.loads(result_text)
+                else:
+                    raise json_err
             
-            result = json.loads(result_text.strip())
             result['source'] = 'Gemini 2.5 Flash'
             return result
+            
+        except json.JSONDecodeError as e:
+            st.error(f"❌ خطأ في قراءة الرد من Gemini: JSON غير صالح")
+            return {
+                "error": f"JSON Error: {str(e)}",
+                "diacritized_text": text,
+                "meter_name": "غير محدد",
+                "meter_type": "غير معروف",
+                "tafeelat": [],
+                "qafiya_type": "غير محدد",
+                "rawwiy": "",
+                "emotional_analysis": f"حدث خطأ في معالجة الرد: {str(e)[:100]}...",
+                "grammar_notes": "",
+                "is_single_tafeela": False,
+                "source": "خطأ في JSON"
+            }
             
         except Exception as e:
             st.error(f"❌ خطأ في تحليل Gemini: {str(e)}")
@@ -988,3 +1017,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
