@@ -92,36 +92,36 @@ COLORS = {
     'cyan': '#00cec9',
 }
 
-st.markdown(f"""
+st.markdown("""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&family=Cairo:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&family=Montserrat:wght@400;700&display=swap');
     
-    .stApp {{
-        background: {COLORS['midnight_blue']};
+    .stApp {
+        background: """ + COLORS['midnight_blue'] + """;
         font-family: 'Cairo', 'Noto Naskh Arabic', sans-serif;
-        color: {COLORS['sandstone_cream']};
-    }}
+        color: """ + COLORS['sandstone_cream'] + """;
+    }
     
-    header {{ background: rgba(7, 26, 47, 0.95) !important; border-bottom: 1px solid {COLORS['aged_gold']}40; }}
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    .stDeployButton {{display:none;}}
+    header { background: rgba(7, 26, 47, 0.95) !important; border-bottom: 1px solid """ + COLORS['aged_gold'] + """40; }
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display:none;}
     
-    .main .block-container {{
+    .main .block-container {
         max-width: 1000px; padding: 2rem;
         background: rgba(7, 26, 47, 0.6);
-        border: 1px solid {COLORS['aged_gold']}40;
+        border: 1px solid """ + COLORS['aged_gold'] + """40;
         border-radius: 30px;
         margin-top: 2rem;
         padding-bottom: 3rem;
-    }}
+    }
     
-    .tam-logo-container {{
+    .tam-logo-container {
         display: flex; flex-direction: column; align-items: center;
         gap: 5px; margin-bottom: 2rem; text-align: center;
-    }}
+    }
     
-    .tam-musnad {{
+    .tam-musnad {
         font-family: 'Times New Roman', serif; font-size: 4rem; font-weight: bold;
         background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
         -webkit-background-clip: text;
@@ -133,9 +133,9 @@ st.markdown(f"""
         filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
         line-height: 1;
         letter-spacing: 0.1em;
-    }}
+    }
     
-    .tam-english {{
+    .tam-english {
         font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 700;
         letter-spacing: 0.3em; text-transform: uppercase;
         background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 25%, #FFFFFF 50%, #A0A0A0 75%, #D0D0D0 100%);
@@ -147,9 +147,9 @@ st.markdown(f"""
             0 0 15px rgba(192,192,192,0.3);
         filter: drop-shadow(0 0 8px rgba(192,192,192,0.4));
         line-height: 1;
-    }}
+    }
     
-    .tam-arabic {{
+    .tam-arabic {
         font-family: 'Noto Kufi Arabic', sans-serif; font-size: 3.5rem; font-weight: bold;
         background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
         -webkit-background-clip: text;
@@ -160,33 +160,33 @@ st.markdown(f"""
             0 0 20px rgba(255,215,0,0.3);
         filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
         line-height: 1;
-    }}
+    }
     
-    .tam-separator {{
+    .tam-separator {
         height: 4px; width: 80%; margin: 10px auto;
-        background: linear-gradient(to right, transparent, {COLORS['aged_gold']}, transparent);
-    }}
+        background: linear-gradient(to right, transparent, """ + COLORS['aged_gold'] + """, transparent);
+    }
     
-    .tam-platform-name {{
+    .tam-platform-name {
         font-family: 'Noto Kufi Arabic', sans-serif; font-size: 1.5rem; font-weight: 700;
-        color: {COLORS['aged_gold']};
+        color: """ + COLORS['aged_gold'] + """;
         text-shadow: 4px 4px 8px rgba(0,0,0,0.9);
         margin-top: 0.5rem;
-    }}
+    }
     
-    .farahidi-title {{
+    .farahidi-title {
         margin-top: 2rem; padding: 0.5rem 2rem;
-        border: 1px solid {COLORS['electric_turquoise']}; border-radius: 50px;
-        color: {COLORS['electric_turquoise']}; font-family: 'Noto Kufi Arabic', sans-serif;
+        border: 1px solid """ + COLORS['electric_turquoise'] + """; border-radius: 50px;
+        color: """ + COLORS['electric_turquoise'] + """; font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.2rem; background: rgba(0, 212, 200, 0.1);
         display: inline-flex; align-items: center; gap: 0.5rem;
-    }}
+    }
     
-    .stTextArea textarea {{
+    .stTextArea textarea {
         background: rgba(255, 255, 255, 0.03) !important;
-        border: 2px solid {COLORS['aged_gold']}60 !important;
+        border: 2px solid """ + COLORS['aged_gold'] + """60 !important;
         border-radius: 15px !important;
-        color: {COLORS['sandstone_cream']} !important;
+        color: """ + COLORS['sandstone_cream'] + """ !important;
         font-family: 'Noto Naskh Arabic', serif !important;
         font-size: 1.2rem !important;
         line-height: 2 !important;
@@ -194,327 +194,130 @@ st.markdown(f"""
         direction: rtl !important;
         min-height: 150px !important;
         padding: 20px !important;
-    }}
+    }
     
-    .stTextArea textarea:focus {{
-        border-color: {COLORS['electric_turquoise']} !important;
-        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
-        background: rgba(10, 25, 50 الفراهيدي الذكي
-TAM Smart Cultural Platform - Al-Farahidi Smart
-Powered by Gemini 2.5 Flash
-"""
-
-import base64
-import os
-import json
-import re
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional
-from enum import Enum
-
-import streamlit as st
-
-try:
-    from google import genai
-    from google.genai import types
-    GEMINI_AVAILABLE = True
-except ImportError:
-    GEMINI_AVAILABLE = False
-    genai = None
-    types = None
-    st.error("❌ مكتبة google-genai غير مثبتة. نفذ: pip install google-genai")
-
-def get_gemini_api_key():
-    try:
-        if 'Gemini_API_Key' in st.secrets:
-            return st.secrets['Gemini_API_Key']
-    except:
-        pass
-    
-    api_key = os.environ.get("Gemini_API_Key")
-    if api_key:
-        return api_key
-    
-    if 'Gemini_API_Key' in st.session_state and st.session_state.Gemini_API_Key:
-        return st.session_state.Gemini_API_Key
-    
-    return None
-
-st.set_page_config(
-    page_title="الفراهيدي الذكي | تام",
-    page_icon="🧠",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
-
-def get_logo_base64():
-    try:
-        logo_path = "logo.jpg"
-        if os.path.exists(logo_path):
-            with open(logo_path, "rb") as image_file:
-                return base64.b64encode(image_file.read()).decode()
-        return None
-    except:
-        return None
-
-logo_base64 = get_logo_base64()
-
-if logo_base64:
-    st.markdown(f"""
-    <link rel="apple-touch-icon" sizes="180x180" href="data:image/jpeg;base64,{logo_base64}">
-    <link rel="icon" type="image/jpeg" sizes="32x32" href="data:image/jpeg;base64,{logo_base64}">
-    <link rel="icon" type="image/jpeg" sizes="16x16" href="data:image/jpeg;base64,{logo_base64}">
-    <link rel="shortcut icon" href="data:image/jpeg;base64,{logo_base64}">
-    <meta name="apple-mobile-web-app-title" content="الفراهيدي الذكي">
-    <meta name="application-name" content="الفراهيدي الذكي">
-    <meta name="theme-color" content="#071A2F">
-    """, unsafe_allow_html=True)
-else:
-    st.markdown("""
-    <meta name="apple-mobile-web-app-title" content="الفراهيدي الذكي">
-    <meta name="application-name" content="الفراهيدي الذكي">
-    <meta name="theme-color" content="#071A2F">
-    """, unsafe_allow_html=True)
-
-COLORS = {
-    'midnight_blue': '#071A2F',
-    'aged_gold': '#C8A44D',
-    'electric_turquoise': '#00d4c8',
-    'electric_turquoise_glow': 'rgba(0, 212, 200, 0.5)',
-    'sandstone_cream': '#f5f0e3',
-    'error_red': '#ff4757',
-    'warning_orange': '#ffa502',
-    'success_green': '#2ed573',
-    'purple': '#9b59b6',
-    'cyan': '#00cec9',
-}
-
-st.markdown(f"""
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;500;700&family=Cairo:wght@300;400;600;800&family=Noto+Kufi+Arabic:wght@400;700&family=Montserrat:wght@400;700&display=swap');
-    
-    .stApp {{
-        background: {COLORS['midnight_blue']};
-        font-family: 'Cairo', 'Noto Naskh Arabic', sans-serif;
-        color: {COLORS['sandstone_cream']};
-    }}
-    
-    header {{ background: rgba(7, 26, 47, 0.95) !important; border-bottom: 1px solid {COLORS['aged_gold']}40; }}
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    .stDeployButton {{display:none;}}
-    
-    .main .block-container {{
-        max-width: 1000px; padding: 2rem;
-        background: rgba(7, 26, 47, 0.6);
-        border: 1px solid {COLORS['aged_gold']}40;
-        border-radius: 30px;
-        margin-top: 2rem;
-        padding-bottom: 3rem;
-    }}
-    
-    .tam-logo-container {{
-        display: flex; flex-direction: column; align-items: center;
-        gap: 5px; margin-bottom: 2rem; text-align: center;
-    }}
-    
-    .tam-musnad {{
-        font-family: 'Times New Roman', serif; font-size: 4rem; font-weight: bold;
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 
-            2px 2px 4px rgba(0,0,0,0.8),
-            -1px -1px 2px rgba(255,215,0,0.5),
-            0 0 20px rgba(255,215,0,0.3);
-        filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
-        line-height: 1;
-        letter-spacing: 0.1em;
-    }}
-    
-    .tam-english {{
-        font-family: 'Montserrat', sans-serif; font-size: 2rem; font-weight: 700;
-        letter-spacing: 0.3em; text-transform: uppercase;
-        background: linear-gradient(135deg, #C0C0C0 0%, #E8E8E8 25%, #FFFFFF 50%, #A0A0A0 75%, #D0D0D0 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 
-            2px 2px 4px rgba(0,0,0,0.8),
-            -1px -1px 2px rgba(192,192,192,0.5),
-            0 0 15px rgba(192,192,192,0.3);
-        filter: drop-shadow(0 0 8px rgba(192,192,192,0.4));
-        line-height: 1;
-    }}
-    
-    .tam-arabic {{
-        font-family: 'Noto Kufi Arabic', sans-serif; font-size: 3.5rem; font-weight: bold;
-        background: linear-gradient(135deg, #FFD700 0%, #FFA500 25%, #FFD700 50%, #B8860B 75%, #FFD700 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 
-            2px 2px 4px rgba(0,0,0,0.8),
-            -1px -1px 2px rgba(255,215,0,0.5),
-            0 0 20px rgba(255,215,0,0.3);
-        filter: drop-shadow(0 0 10px rgba(255,215,0,0.4));
-        line-height: 1;
-    }}
-    
-    .tam-separator {{
-        height: 4px; width: 80%; margin: 10px auto;
-        background: linear-gradient(to right, transparent, {COLORS['aged_gold']}, transparent);
-    }}
-    
-    .tam-platform-name {{
-        font-family: 'Noto Kufi Arabic', sans-serif; font-size: 1.5rem; font-weight: 700;
-        color: {COLORS['aged_gold']};
-        text-shadow: 4px 4px 8px rgba(0,0,0,0.9);
-        margin-top: 0.5rem;
-    }}
-    
-    .farahidi-title {{
-        margin-top: 2rem; padding: 0.5rem 2rem;
-        border: 1px solid {COLORS['electric_turquoise']}; border-radius: 50px;
-        color: {COLORS['electric_turquoise']}; font-family: 'Noto Kufi Arabic', sans-serif;
-        font-size: 1.2rem; background: rgba(0, 212, 200, 0.1);
-        display: inline-flex; align-items: center; gap: 0.5rem;
-    }}
-    
-    .stTextArea textarea {{
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 2px solid {COLORS['aged_gold']}60 !important;
-        border-radius: 15px !important;
-        color: {COLORS['sandstone_cream']} !important;
-        font-family: 'Noto Naskh Arabic', serif !important;
-        font-size: 1.2rem !important;
-        line-height: 2 !important;
-        text-align: center !important;
-        direction: rtl !important;
-        min-height: 150px !important;
-        padding: 20px !important;
-    }}
-    
-    .stTextArea textarea:focus {{
-        border-color: {COLORS['electric_turquoise']} !important;
-        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
+    .stTextArea textarea:focus {
+        border-color: """ + COLORS['electric_turquoise'] + """ !important;
+        box-shadow: 0 0 15px """ + COLORS['electric_turquoise_glow'] + """ !important;
         background: rgba(10, 25, 50, 0.95) !important;
-    }}
+    }
     
-    .stTextArea textarea::placeholder {{
+    .stTextArea textarea::placeholder {
         color: rgba(245, 240, 227, 0.5) !important;
         font-size: 1.2rem !important;
-    }}
+    }
     
-    .stTextArea label {{ display: none !important; }}
-    .stTextArea > div > div {{ background: transparent !important; }}
+    .stTextArea label { display: none !important; }
+    .stTextArea > div > div { background: transparent !important; }
     
-    .stButton > button {{
+    .stButton > button {
         font-family: 'Noto Kufi Arabic', sans-serif !important; font-weight: 700 !important;
         font-size: 1.1rem !important; border-radius: 50px !important;
         padding: 1rem 2.5rem !important; border: none !important;
         cursor: pointer !important;
         background: transparent !important;
-        border: 2px solid {COLORS['electric_turquoise']} !important;
-        color: {COLORS['electric_turquoise']} !important;
+        border: 2px solid """ + COLORS['electric_turquoise'] + """ !important;
+        color: """ + COLORS['electric_turquoise'] + """ !important;
         transition: all 0.3s ease !important;
-    }}
+    }
     
-    .stButton > button:hover {{
+    .stButton > button:hover {
         background: rgba(0, 212, 200, 0.1) !important;
-        box-shadow: 0 0 15px {COLORS['electric_turquoise_glow']} !important;
-    }}
+        box-shadow: 0 0 15px """ + COLORS['electric_turquoise_glow'] + """ !important;
+    }
     
-    .btn-gold > button {{
-        border-color: {COLORS['aged_gold']} !important;
-        color: {COLORS['aged_gold']} !important;
-    }}
+    .btn-gold > button {
+        border-color: """ + COLORS['aged_gold'] + """ !important;
+        color: """ + COLORS['aged_gold'] + """ !important;
+    }
     
-    .btn-gold > button:hover {{
+    .btn-gold > button:hover {
         background: rgba(200, 164, 77, 0.1) !important;
         box-shadow: 0 0 15px rgba(200, 164, 77, 0.3) !important;
-    }}
+    }
     
-    .tafeela-card {{
+    .tafeela-card {
         background: rgba(10, 22, 40, 0.8);
         border-radius: 15px; padding: 1.5rem; margin: 1rem 0;
-        border: 2px solid {COLORS['aged_gold']}40;
+        border: 2px solid """ + COLORS['aged_gold'] + """40;
         text-align: center; position: relative;
-    }}
+    }
     
-    .tafeela-card.error {{ border-color: {COLORS['error_red']}; }}
-    .tafeela-card.warning {{ border-color: {COLORS['warning_orange']}; }}
-    .tafeela-card.success {{ border-color: {COLORS['success_green']}; }}
-    .tafeela-card.purple {{ border-color: {COLORS['purple']}; }}
-    .tafeela-card.cyan {{ border-color: {COLORS['cyan']}; }}
+    .tafeela-card.error { border-color: """ + COLORS['error_red'] + """; }
+    .tafeela-card.warning { border-color: """ + COLORS['warning_orange'] + """; }
+    .tafeela-card.success { border-color: """ + COLORS['success_green'] + """; }
+    .tafeela-card.purple { border-color: """ + COLORS['purple'] + """; }
+    .tafeela-card.cyan { border-color: """ + COLORS['cyan'] + """; }
     
-    .tafeela-name {{
+    .tafeela-name {
         font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.8rem; font-weight: bold;
-        color: {COLORS['electric_turquoise']}; margin-bottom: 0.5rem;
-    }}
+        color: """ + COLORS['electric_turquoise'] + """; margin-bottom: 0.5rem;
+    }
     
-    .tafeela-pattern {{
+    .tafeela-pattern {
         font-family: 'Courier New', monospace; font-size: 1.3rem;
-        color: {COLORS['sandstone_cream']}; letter-spacing: 0.2em;
+        color: """ + COLORS['sandstone_cream'] + """; letter-spacing: 0.2em;
         direction: ltr; display: inline-block;
-    }}
+    }
     
-    .status-message {{
+    .status-message {
         padding: 1.5rem; border-radius: 15px; margin: 1rem 0;
         font-family: 'Noto Kufi Arabic', sans-serif; text-align: center;
-    }}
+    }
     
-    .status-message.success {{
+    .status-message.success {
         background: rgba(46, 213, 115, 0.2);
-        border: 2px solid {COLORS['success_green']};
-        color: {COLORS['success_green']};
-    }}
+        border: 2px solid """ + COLORS['success_green'] + """;
+        color: """ + COLORS['success_green'] + """;
+    }
     
-    .status-message.warning {{
+    .status-message.warning {
         background: rgba(255, 165, 2, 0.2);
-        border: 2px solid {COLORS['warning_orange']};
-        color: {COLORS['warning_orange']};
-    }}
+        border: 2px solid """ + COLORS['warning_orange'] + """;
+        color: """ + COLORS['warning_orange'] + """;
+    }
     
-    .status-message.error {{
+    .status-message.error {
         background: rgba(255, 71, 87, 0.2);
-        border: 2px solid {COLORS['error_red']};
-        color: {COLORS['error_red']};
-    }}
+        border: 2px solid """ + COLORS['error_red'] + """;
+        color: """ + COLORS['error_red'] + """;
+    }
     
-    .result-card {{
+    .result-card {
         background: rgba(10, 22, 40, 0.6);
-        border-right: 4px solid {COLORS['electric_turquoise']};
+        border-right: 4px solid """ + COLORS['electric_turquoise'] + """;
         padding: 1.5rem;
         border-radius: 10px;
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
-    }}
+    }
     
-    .result-label {{
-        color: {COLORS['aged_gold']};
+    .result-label {
+        color: """ + COLORS['aged_gold'] + """;
         font-weight: bold;
         font-size: 0.9rem;
-    }}
+    }
     
-    .result-value {{
+    .result-value {
         font-size: 1.4rem;
-        color: {COLORS['sandstone_cream']};
-    }}
+        color: """ + COLORS['sandstone_cream'] + """;
+    }
     
-    .technical-box {{
+    .technical-box {
         background: rgba(0, 0, 0, 0.3);
         border-radius: 10px; padding: 1rem;
         font-family: 'Courier New', monospace;
         direction: ltr; text-align: left;
-        font-size: 1.1rem; color: {COLORS['electric_turquoise']};
+        font-size: 1.1rem; color: """ + COLORS['electric_turquoise'] + """;
         word-break: break-all;
-    }}
+    }
     
-    .diacritics-box {{
+    .diacritics-box {
         background: rgba(0, 0, 0, 0.2);
-        border: 1px dashed {COLORS['electric_turquoise']};
+        border: 1px dashed """ + COLORS['electric_turquoise'] + """;
         padding: 20px;
         border-radius: 10px;
         font-family: 'Noto Naskh Arabic';
@@ -523,91 +326,91 @@ st.markdown(f"""
         text-align: center;
         color: #fff;
         margin-top: 20px;
-    }}
+    }
     
-    .qafiya-box {{
+    .qafiya-box {
         background: rgba(155, 89, 182, 0.2);
-        border: 2px solid {COLORS['purple']};
+        border: 2px solid """ + COLORS['purple'] + """;
         border-radius: 15px;
         padding: 1.5rem;
         margin: 1rem 0;
         text-align: center;
-    }}
+    }
     
-    .meter-type-badge {{
+    .meter-type-badge {
         display: inline-block;
         padding: 0.5rem 1.5rem;
         border-radius: 25px;
         font-weight: bold;
         font-family: 'Noto Kufi Arabic';
         margin: 0.5rem;
-    }}
+    }
     
-    .badge-tam {{ background: {COLORS['success_green']}; color: white; }}
-    .badge-majzoo {{ background: {COLORS['warning_orange']}; color: white; }}
-    .badge-mashtoor {{ background: {COLORS['purple']}; color: white; }}
-    .badge-manhooq {{ background: {COLORS['error_red']}; color: white; }}
-    .badge-mutafa {{ background: {COLORS['cyan']}; color: white; }}
+    .badge-tam { background: """ + COLORS['success_green'] + """; color: white; }
+    .badge-majzoo { background: """ + COLORS['warning_orange'] + """; color: white; }
+    .badge-mashtoor { background: """ + COLORS['purple'] + """; color: white; }
+    .badge-manhooq { background: """ + COLORS['error_red'] + """; color: white; }
+    .badge-mutafa { background: """ + COLORS['cyan'] + """; color: white; }
     
-    .tam-footer {{
+    .tam-footer {
         text-align: center; padding: 2rem;
         color: rgba(245, 240, 227, 0.5); font-size: 0.9rem;
-        margin-top: 2rem; border-top: 1px solid {COLORS['aged_gold']}20;
-    }}
+        margin-top: 2rem; border-top: 1px solid """ + COLORS['aged_gold'] + """20;
+    }
     
-    .stTabs [data-baseweb="tab-list"] {{
+    .stTabs [data-baseweb="tab-list"] {
         gap: 20px;
         background-color: rgba(10, 22, 40, 0.5);
         padding: 10px;
         border-radius: 15px;
-        border: 1px solid {COLORS['aged_gold']}40;
-    }}
+        border: 1px solid """ + COLORS['aged_gold'] + """40;
+    }
     
-    .stTabs [data-baseweb="tab"] {{
+    .stTabs [data-baseweb="tab"] {
         height: 50px;
         white-space: pre-wrap;
         background-color: transparent;
         border-radius: 10px;
-        color: {COLORS['sandstone_cream']};
+        color: """ + COLORS['sandstone_cream'] + """;
         font-family: 'Noto Kufi Arabic';
-    }}
+    }
     
-    .stTabs [aria-selected="true"] {{
-        background-color: {COLORS['electric_turquoise']} !important;
-        color: {COLORS['midnight_blue']} !important;
+    .stTabs [aria-selected="true"] {
+        background-color: """ + COLORS['electric_turquoise'] + """ !important;
+        color: """ + COLORS['midnight_blue'] + """ !important;
         font-weight: bold;
-    }}
+    }
     
-    .stMarkdown, .stTextArea, div[data-testid="stVerticalBlock"] {{
+    .stMarkdown, .stTextArea, div[data-testid="stVerticalBlock"] {
         background: transparent !important;
-    }}
+    }
     
-    div[data-testid="stVerticalBlock"] > div {{
+    div[data-testid="stVerticalBlock"] > div {
         background: transparent !important;
-    }}
+    }
     
-    .element-container {{
+    .element-container {
         background: transparent !important;
-    }}
+    }
     
-    .stExpander {{
+    .stExpander {
         background: rgba(10, 22, 40, 0.6) !important;
         border-radius: 15px;
-        border: 1px solid {COLORS['aged_gold']}40;
-    }}
+        border: 1px solid """ + COLORS['aged_gold'] + """40;
+    }
     
-    .input-label {{
+    .input-label {
         font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.1rem;
-        color: {COLORS['sandstone_cream']};
+        color: """ + COLORS['sandstone_cream'] + """;
         text-align: center;
         margin-bottom: 10px;
         opacity: 0.9;
-    }}
+    }
     
-    .welcome-section {{
+    .welcome-section {
         background: linear-gradient(135deg, rgba(0, 212, 200, 0.1) 0%, rgba(200, 164, 77, 0.1) 100%);
-        border: 1px solid {COLORS['electric_turquoise']}40;
+        border: 1px solid """ + COLORS['electric_turquoise'] + """40;
         border-radius: 20px;
         padding: 2rem;
         margin-top: 3rem;
@@ -615,37 +418,37 @@ st.markdown(f"""
         text-align: center;
         position: relative;
         overflow: hidden;
-    }}
+    }
     
-    .welcome-section::before {{
+    .welcome-section::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; height: 3px;
-        background: linear-gradient(to right, transparent, {COLORS['electric_turquoise']}, {COLORS['aged_gold']}, {COLORS['electric_turquoise']}, transparent);
-    }}
+        background: linear-gradient(to right, transparent, """ + COLORS['electric_turquoise'] + """, """ + COLORS['aged_gold'] + """, """ + COLORS['electric_turquoise'] + """, transparent);
+    }
     
-    .welcome-text {{
+    .welcome-text {
         font-family: 'Noto Kufi Arabic', sans-serif;
         font-size: 1.3rem;
-        color: {COLORS['sandstone_cream']};
+        color: """ + COLORS['sandstone_cream'] + """;
         line-height: 2;
         margin-bottom: 1.5rem;
         text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    }}
+    }
     
-    .welcome-highlight {{
-        color: {COLORS['electric_turquoise']};
+    .welcome-highlight {
+        color: """ + COLORS['electric_turquoise'] + """;
         font-weight: bold;
-    }}
+    }
     
-    .facebook-btn-container {{
+    .facebook-btn-container {
         display: flex;
         justify-content: center;
         align-items: center;
         margin-top: 1rem;
-    }}
+    }
     
-    .facebook-btn {{
+    .facebook-btn {
         display: inline-flex;
         align-items: center;
         gap: 12px;
@@ -665,9 +468,9 @@ st.markdown(f"""
         transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
-    }}
+    }
     
-    .facebook-btn::before {{
+    .facebook-btn::before {
         content: '';
         position: absolute;
         top: 0;
@@ -676,34 +479,34 @@ st.markdown(f"""
         height: 100%;
         background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
         transition: left 0.5s ease;
-    }}
+    }
     
-    .facebook-btn:hover::before {{
+    .facebook-btn:hover::before {
         left: 100%;
-    }}
+    }
     
-    .facebook-btn:hover {{
+    .facebook-btn:hover {
         transform: translateY(-3px);
         box-shadow: 
             0 8px 25px rgba(24, 119, 242, 0.5),
             0 0 40px rgba(24, 119, 242, 0.3),
             inset 0 1px 0 rgba(255,255,255,0.3);
-    }}
+    }
     
-    .facebook-icon {{
+    .facebook-icon {
         font-size: 1.5rem;
-    }}
+    }
     
-    .heart-icon {{
-        color: {COLORS['error_red']};
+    .heart-icon {
+        color: """ + COLORS['error_red'] + """;
         animation: heartbeat 1.5s ease-in-out infinite;
         display: inline-block;
-    }}
+    }
     
-    @keyframes heartbeat {{
-        0%, 100% {{ transform: scale(1); }}
-        50% {{ transform: scale(1.2); }}
-    }}
+    @keyframes heartbeat {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -1241,3 +1044,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
